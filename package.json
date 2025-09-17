@@ -1,0 +1,31 @@
+{
+  "name": "auth-with-express-and-mongodb",
+  "version": "1.0.0",
+  "description": "auth using express and mongodb ",
+  "keywords": [
+    "mongoose",
+    "mongoose schema",
+    "mongoDB",
+    "express.js",
+    "cred",
+    "node.js"
+  ],
+  "license": "ISC",
+  "author": "K.Singh",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node --env-file=.env --watch index.js",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "mongodb": "^6.19.0",
+    "mongoose": "^8.18.1",
+    "zod": "^4.1.8"
+  }
+}

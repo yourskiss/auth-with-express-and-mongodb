@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Teacher List</title>
+</head>
+<body>
+<%- include('partials/header') %>
+<section class="sectionmin">
+    <h1 class="mainheading">Details (<%= result.id %>)</h1>
+    <% if (error) { %>
+      <h6 class="mainError"><%= error %></h6>
+    <% } else { %>
+    <h4 class="backtolist">
+      <a href="/teachers/<%= querydata %>">Back to List</a>
+    </h4>
+    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; width: 100%; display: flex; justify-content: space-between;">
+        <p>
+            <strong>Full Name:</strong> <%= result.fullname %> <br>
+            <strong>Mobile:</strong> <%= result.mobile %><br>
+            <strong>Email:</strong> <%= result.email %><br>
+            <strong>Created At:</strong> <%= new Date(result.createdAt).toLocaleString() %><br>
+            <% 
+            const createdDate = new Date(result.createdAt);
+            const updatedDate = new Date(result.updatedAt);
+            if (createdDate.getTime() < updatedDate.getTime()) { %>
+                  <strong>Updated At:</strong> <%= new Date(result.updatedAt).toLocaleString() %><br>
+            <% } %>
+        </p>
+    </div>
+    <% } %>
+</section>
+<%- include('partials/footer', { title: 'EMP Management System' }) %>
+</body>
+</html>
