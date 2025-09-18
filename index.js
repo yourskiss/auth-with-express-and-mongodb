@@ -4,7 +4,7 @@ import session from 'express-session';
 
 import { PORT } from "./config/env.js";
 import connectDB from "./config/db.js";
-// import { teacherRoutes } from "./routes/teacherRoutes.js";
+import { userRoutes } from "./routes/userRoutes.js";
 
 // Connect to Databse
 connectDB();
@@ -37,12 +37,12 @@ app.use((req, res, next) => {
 });
 
 app.get("/", (req, res) => {
-   res.send("Hello World");
-//  res.redirect('/teachers');
+  // res.send("Hello World");
+  res.redirect('/users');
 });
 
 
-// app.use("/teachers",teacherRoutes);
+app.use("/users",userRoutes);
 
 
 // run to the server on the port

@@ -10,19 +10,19 @@
   <header class="headerpart">
     <h1>EMP Management System</h1>
     <nav>
-      <a href="/teachers/add">Add New</a> 
+      <a href="/users/create">Add New</a> 
        &nbsp; ||  &nbsp; 
-      <a href="/teachers">View All</a>
+      <a href="/users">View All</a>
         &nbsp; ||  &nbsp; 
 
       <% if (userId) { %>
-        <a href="/teachers/change-password">Change Password</a>
+        <a href="/users/change-password">Change Password</a>
          &nbsp; ||  &nbsp; 
-         <a href="/teachers/dashboard">Dashboard</a>
+         <a href="/users/dashboard">Dashboard</a>
          &nbsp; ||  &nbsp; 
-        <a href="/teachers/logout">Logout</a>
+        <a href="/users/logout">Logout</a>
       <% } else { %>
-        <a href="/teachers/login">Login</a>
+        <a href="/users/login">Login</a>
       <% } %>
       
     </nav>

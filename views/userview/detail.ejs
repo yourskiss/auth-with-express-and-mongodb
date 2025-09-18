@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Teacher List</title>
+  <title>User Details</title>
 </head>
 <body>
-<%- include('partials/header') %>
+<%- include('../partials/header') %>
 <section class="sectionmin">
-    <h1 class="mainheading">Details (<%= result.id %>)</h1>
+    <h1 class="mainheading">User Details (<%= result.id %>)</h1>
     <% if (error) { %>
       <h6 class="mainError"><%= error %></h6>
     <% } else { %>
     <h4 class="backtolist">
-      <a href="/teachers/<%= querydata %>">Back to List</a>
+      <a href="/users/<%= querydata %>">Back to List</a>
     </h4>
     <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; width: 100%; display: flex; justify-content: space-between;">
         <p>
@@ -29,6 +29,6 @@
     </div>
     <% } %>
 </section>
-<%- include('partials/footer', { title: 'EMP Management System' }) %>
+<%- include('../partials/footer', { title: 'EMP Management System' }) %>
 </body>
 </html>

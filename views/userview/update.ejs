@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Add Teacher</title>
+  <title>Update User Details</title>
 </head>
 <body>
-<%- include('partials/header') %>
+<%- include('../partials/header') %>
 <section class="sectionmin">
-  <h1  class="mainheading">Create New</h1>
-  <form class="formpart" action="/teachers/add" method="post">
+  <h1 class="mainheading">Update User Details (<%= id %>) </h1>
+  
+  <form class="formpart" action="/users/update/<%= id %>" method="post">
+    <h4 class="backtolist">
+      <a href="/users/<%= querydata %>">Back to List</a>
+    </h4>
     <% if (error) { %>
       <aside class="errormessage"><%= error %></aside>
     <% } %>
@@ -15,16 +19,18 @@
       <aside class="successmessage"><%= success %></aside>
       <script>
         setTimeout(() => {
-          window.location.href = '/teachers';
+          window.location.href = "/users/<%= querydata %>";
         }, 2000); 
       </script>
     <% } %>
+    
+    <input type="hidden" name="querydata" value="<%= querydata %>">
     <div>
         <label>Fullname:</label>
         <input 
             type="text" 
             name="fullname" 
-            value="<%= data.fullname || '' %>"
+             value="<%= result.fullname || '' %>"
         />
     </div>
     <div>
@@ -32,30 +38,22 @@
         <input 
             type="text" 
             name="mobile" 
-            value="<%= data.mobile || '' %>"
-
+            value="<%= result.mobile || '' %>"
         />
     </div>
     <div>
         <label>Email:</label>
         <input 
-            type="test" 
-            name="email" 
-            value="<%= data.email || '' %>"
-        />
-    </div>
-    <div>
-        <label>Password:</label>
-        <input 
             type="text" 
-            name="password" 
+            name="email" 
+            value="<%= result.email || '' %>"
         />
     </div>
     <div>
-      <button type="submit">Submit</button>
+      <button type="submit">Update</button>
     </div>
   </form>
 </section>
-<%- include('partials/footer', { title: 'EMP Management System' }) %>
+<%- include('../partials/footer', { title: 'EMP Management System' }) %>
 </body>
 </html>

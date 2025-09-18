@@ -11,7 +11,8 @@ body { font-family: Arial, Helvetica, sans-serif; }
 .footerpart {  background-color: blueviolet;  box-sizing: border-box; width: 100%; padding: 20px; }
 .footerpart p {text-align: center; color: #fff; font-size: 16px; width: 100%; }
  
-.mainheading {width: 100%; padding: 30px 0 20px 0; text-align: center; color: #000; font-size:30px;  }
+.mainheading {width: 100%; padding: 30px 0 10px 0; text-align: center; color: #000; font-size:30px;  }
+.maintext {width: 100%;  padding:0px 20px 20px 20px; text-align: center; color: #7c7b7b; font-size:16px;  }
 .mainError {text-align: center; color: #ec0808; font-size: 16px; width: 100%; }
 .backtolist { text-align: left; color: blueviolet; font-size: 16px; width: 100%; margin-bottom: 20px; }
 
@@ -31,8 +32,8 @@ body { font-family: Arial, Helvetica, sans-serif; }
 .formpart aside {text-align: center;  font-size: 16px; width: 100%; padding: 10px;  border: 1px solid; margin: 10px 0; }
 .formpart aside.errormessage { background: #ffdddd; color: #ff0000; border-color: #ff9090; }
 .formpart aside.successmessage { background: #d4edda; color: #155724;  border-color: #a5fab9; }
-.formpart label { padding: 0 0 10px 0;  color: #000; font-size: 16px; width: 100%; }
-.formpart input { padding: 8px 15px;  color: #000; font-size: 16px; width: 100%; }
+.formpart label { padding: 0 0 10px 0; margin: 0;  color: #000; font-size: 16px; width: 100%; }
+.formpart input { margin: 10px 0 10px 0; padding: 10px 15px;  color: #000; font-size: 16px; width: 100%; }
 .formpart button{
     display: inline-block;
   padding: 10px 25px;

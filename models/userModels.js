@@ -1,0 +1,27 @@
+import mongoose from "mongoose";
+
+const tblSchema = new mongoose.Schema(
+  {
+      fullname: { type: String, required: true, trim: true },
+      mobile: { type: String, required: true, unique: true },
+      email: { type: String, required: true, unique: true },
+      password: { type: String, required: true, trim: true   },
+
+      resetOtp: { type: String },
+      otpExpiry: { type: Date }
+  },
+  { timestamps: true }
+);
+
+const collection_name = process.env.COL_USERS;
+if (!collection_name) {
+  throw new Error('❌ Models : Missing collection name in environment variables.');
+}
+
+const userModels = mongoose.model(
+  'userlist', 
+  tblSchema,
+  collection_name 
+);
+
+export default userModels;

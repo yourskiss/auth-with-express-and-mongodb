@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Add Teacher</title>
+  <title>User Login</title>
 </head>
 <body>
-<%- include('partials/header') %>
+<%- include('../partials/header') %>
 <section class="sectionmin">
-  <h1  class="mainheading">Login</h1>
+  <h1  class="mainheading">User Login</h1>
  
-  <form class="formpart" action="/teachers/login" method="post">
+  <form class="formpart" action="/users/login" method="post">
     <% if (error) { %>
       <aside class="errormessage"><%= error %></aside>
     <% } %>
@@ -16,7 +16,7 @@
       <aside class="successmessage"><%= success %></aside>
       <script>
         setTimeout(() => {
-          window.location.href = "/teachers/dashboard";
+          window.location.href = "/users/dashboard";
         }, 2000); 
       </script>
     <% } %>
@@ -36,10 +36,13 @@
         />
     </div>
     <div>
+        <a href="/users/password-forget">Forgot Password?</a>      
+    </div>
+    <div>
       <button type="submit">Login</button>
     </div>
   </form>
 </section>
-<%- include('partials/footer', { title: 'EMP Management System' }) %>
+<%- include('../partials/footer', { title: 'EMP Management System' }) %>
 </body>
 </html>
