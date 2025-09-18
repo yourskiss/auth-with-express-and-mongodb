@@ -2,5 +2,5 @@
   if (req.session && req.session.userId) {
     return next();
   }
-  res.redirect('/teachers/login');
+  res.redirect('/users/login');
 };
