@@ -28,8 +28,9 @@ export const handlePasswordForget = async (req, res) => {
   }
   try {
     // Generate 6 digit random number
+    const otpExpireTime = process.env.OTP_TIME || 10;
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = new Date(Date.now() + 2 * 60 * 1000); // 10 minutes from now
+    const expiry = new Date(Date.now() + otpExpireTime * 60 * 1000); // minutes from now
     
     // Check if user exists
     const checkuserbyemail = await userModels.findOne({ email });
