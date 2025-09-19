@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Create New User</title>
+  <title>Register User</title>
 </head>
 <body>
 <%- include('../partials/header') %>
 <section class="sectionmin">
-  <h1  class="mainheading">Create New User</h1>
+  <h1  class="mainheading">Register User</h1>
   <p class="maintext">
-    Please fill in the details below to create a new user.
+    Please fill in the form to create an account.
   </p>
   
-  <form class="formpart" action="/users/create" method="post">
+  <form class="formpart" action="/users/register" method="post">
     <% if (error) { %>
       <aside class="errormessage"><%= error %></aside>
     <% } %>
@@ -19,7 +19,7 @@
       <aside class="successmessage"><%= success %></aside>
       <script>
         setTimeout(() => {
-          window.location.href = '/users';
+          window.location.href = '/users/verify-registation';
         }, 2000); 
       </script>
     <% } %>
@@ -53,6 +53,15 @@
         <input 
             type="text" 
             name="password" 
+            value="<%= data.password || '' %>"
+        />
+    </div>
+    <div>
+        <label>Password:</label>
+        <input 
+            type="text" 
+            name="confirmpassword" 
+            value="<%= data.confirmpassword || '' %>"
         />
     </div>
     <div>

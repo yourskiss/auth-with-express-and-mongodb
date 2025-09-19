@@ -16,6 +16,10 @@ import {
 } from '../controllers/userController.js';
 
 import { 
+    renderRegister,
+    handleRegister,
+    renderVerifyRegister, 
+    handleVerifyRegister,
     renderLogin, 
     handleLogin, 
     renderPasswordForget, 
@@ -28,6 +32,10 @@ import {
  
 
 // public routes
+router.get('/register', isGuest, renderRegister);
+router.post('/register', isGuest, handleRegister);
+router.get('/verify-registation', isGuest, renderVerifyRegister);
+router.post('/verify-registation', isGuest, handleVerifyRegister);
 router.get('/login', isGuest, renderLogin);
 router.post('/login', isGuest, handleLogin);
 router.get('/password-forget', isGuest, renderPasswordForget);

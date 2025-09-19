@@ -3,6 +3,203 @@ import { sendOtpEmail } from '../utils/sendOTP.js';
 import userModels from "../models/userModels.js";
 
 
+export const renderRegister = async (req, res) => {
+  const data = {fullname: '', mobile: '', email: '', password: '', confirmpassword: '' }
+  res.render('userview/register', { 
+    success:null, 
+    error: null, 
+    data 
+  });
+}
+ 
+export const handleRegister = async (req, res) => {
+const { fullname, mobile, email, password, confirmpassword } = req.body;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const mobileRegex = /^[6-9]\d{9}$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;  
+  const data = { fullname, mobile, email, password, confirmpassword }
+
+  if (!fullname || !mobile || !email || !password || !confirmpassword) {
+    return res.status(401).render('userview/register', {
+          success:null,
+          error: 'All fields are required.',
+          data
+        });
+  }
+  if (!mobileRegex.test(mobile)) {
+    return res.status(401).render('userview/register', {
+          success:null,
+          error: 'Mobile number must be exactly 10 digits.',
+          data
+        });
+  }
+  if (!emailRegex.test(email)) {
+    return res.status(401).render('userview/register', {
+          success:null,
+          error: 'Email format is invalid.',
+          data
+        });
+  } 
+  if (!passwordRegex.test(password)) {
+    return res.status(401).render('userview/register', {
+      success:null,
+      error: 'Password must be at least 6 characters, include uppercase, lowercase, number, and special character.',
+      data
+    });
+  }
+  if (password !== confirmpassword) {
+    return res.status(400).render('userview/register', { 
+      success:null,
+      error:'Password and confirm password do not match.', 
+      data
+    });
+  }
+  // Check if user already exists
+    const existingUser = await userModels.findOne({ $or: [{ email }, { mobile }] });
+      if (existingUser) {
+          const errorMsg = existingUser.email === email
+          ? 'Email ID already registered. Register with another Email ID'
+          : 'Mobile Number already registered. Try with another Mobile Number';
+        return res.status(409).render('userview/register', {
+          success: null,
+          error: errorMsg,
+          data
+        });
+    }
+
+  try {
+    // Generate 6 digit random number
+    const otpExpireTime = process.env.OTP_TIME || 10;
+    const genratedotp = Math.floor(100000 + Math.random() * 900000).toString();
+    const createdAt = new Date(Date.now() + otpExpireTime * 60 * 1000); // minutes from now
+    
+
+    // ✅ Send OTP email
+    await sendOtpEmail(email, genratedotp, "register");  
+    console.log(`OTP ${genratedotp} sent to ${email}`);
+
+    // ✅ Store user data + OTP in session
+    const newdata = { ...data,  genratedotp,  createdAt };
+    req.session.tempUser = newdata;
+    console.log("temp user session - ", newdata)
+    req.session.save((err) => {
+      if (err) {
+        return res.status(405).render('userview/register', {
+          success: null,
+          error: 'Failed to save session. Try again.',
+          data
+        });
+      }
+    });
+    res.status(200).render('userview/register', {
+          success:'OTP sent to your email. Please verify to complete registration.',
+          error: null,
+          data 
+      });
+  } catch (err) {
+    console.log("Internal Server Error - ", err)
+    res.status(500).render('userview/register', {
+          success:null,
+          error: 'Internal Server Error. Please try again later.',
+          data
+        });
+  }
+};
+
+ 
+
+export const renderVerifyRegister = async (req, res) => {
+  if (!req.session.tempUser) {
+    return res.status(400).render('userview/register-verify', { 
+      success:null, 
+      info:'Session Expire. Please resubmit',
+      error: null, 
+      email: ''
+    });
+  }
+  const { email } = req.session.tempUser;
+  res.status(200).render('userview/register-verify', { 
+      success:null, 
+      info:null,
+      error: null, 
+      email: email
+    });
+}
+ 
+export const handleVerifyRegister = async (req, res) => {
+ if (!req.session.tempUser) {
+    return res.status(400).render('userview/register-verify', { 
+      success:null, 
+      info:'Session Expire. Please resubmit',
+      error: null, 
+      email: ''
+    });
+  }
+ const { fullname, mobile, email, password, genratedotp, createdAt } = req.session.tempUser;
+ const { otp } = req.body;
+ 
+  if (!otp || otp.length !== 6) {
+      return res.status(400).render('userview/register-verify', {
+        success: null,
+        info:null,
+        error: 'Enter 6 Digit OTP',
+        email
+      });
+  }
+  if (new Date(createdAt) < new Date()) {
+      return res.status(400).render('userview/register-verify', {
+        success: null,
+        info:null,
+        error: 'OTP has expired',
+        email
+      });
+    }
+  if (genratedotp !== otp) {
+      return res.status(400).render('userview/register-verify', {
+        success: null,
+        info:null,
+        error: 'Invalid OTP',
+        email
+      });
+  }
+ try {
+  // password hashing
+  const salt = await bcrypt.genSalt(12);
+  const hashedPassword = await bcrypt.hash(password, salt);
+  const finaldata = { fullname, mobile, email, password:hashedPassword } 
+  
+    const result = await userModels.create(finaldata);
+    if(!result)
+    {
+      return res.status(400).render('userview/register-verify', {
+        success: null,
+        info:null,
+        error: 'Error in Registation',
+        email
+      });
+    }
+    //console.log("New User register: ", result);
+   // console.log("before clear tempUser: ", req.session.tempUser);
+    req.session.tempUser = null; // temp data session clear
+    console.log("after clear tempUser: ", req.session.tempUser);
+    res.status(200).render('userview/register-verify', {
+          success:'OTP verified. Registation successfully.',
+          info:null,
+          error: null,
+          email
+        });
+  } catch (err) {
+    console.error('OTP verification error:', err);
+    res.status(500).render('userview/register-verify', {
+      success: null,
+      info:null,
+      error: 'Internal server error',
+      email
+    });
+  }
+};
+
+
 export const renderLogin = async (req, res) => {
   res.render('userview/login', { 
     success:null, 
@@ -122,7 +319,7 @@ export const handlePasswordForget = async (req, res) => {
     console.log(`OTP ${otp} genrated, It will be expire in - ${otpExpireTime} minutes. ===> ${expiry}`);
 
     // Send OTP to email
-    await sendOtpEmail(email, otp); 
+    await sendOtpEmail(email, otp, "forget"); 
     console.log(`OTP ${otp} sent to ${email}`);
 
     // Store email in session
@@ -278,9 +475,22 @@ export const handlePasswordReset = async (req, res) => {
   }
 
   try {
+    // check if Entered password is different from Previous password
+    const getByEmail = await userModels.findOne({ email });
+    const isSame = await bcrypt.compare(password, getByEmail.password);
+    if (isSame) {
+      return res.status(409).render('userview/password-reset', {
+        success: null,
+        info: null,
+        error: 'Entered password and Previous password is same. Please enter different password',
+        email,
+        password:'',
+        confirmPassword:''
+      });
+    }
+    
     const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(password, salt);
-
     const user = await userModels.findOneAndUpdate(
       { email },
       { password: hashedPassword, resetOtp: null, otpExpiry: null },
