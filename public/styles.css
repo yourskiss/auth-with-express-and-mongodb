@@ -3,16 +3,20 @@ body { font-family: Arial, Helvetica, sans-serif; }
 
 .headerpart {  background-color: blueviolet; width: 100%; padding: 20px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; }
 .headerpart h1 { text-align: center; color: #fff; font-size:30px;  }
-.headerpart nav {color: #fff; font-size:16px; }
-.headerpart nav a { color: #fff;  }
+.headerpart p {color: #fff; font-size:16px; }
+.headerpart p a { color: #fff;  }
 
-.sectionmin { background-color: #fff; width: 100%; padding: 20px 0 40px 0;  }
+.headnav { background-color: rgb(39, 1, 82); width: 100%; padding:10px 20px; box-sizing: border-box; display: flex; justify-content: space-end; align-items: center; flex-wrap: wrap; color: #fff; font-size:16px; }
+.headnav a { color: #fff;  }
 
 .footerpart {  background-color: blueviolet;  box-sizing: border-box; width: 100%; padding: 20px; }
 .footerpart p {text-align: center; color: #fff; font-size: 16px; width: 100%; }
  
+
+.sectionmin { background-color: #fff; width: 100%; padding: 20px 20px 40px 20px;  }
+
 .mainheading {width: 100%; padding: 30px 0 10px 0; text-align: center; color: #000; font-size:30px;  }
-.maintext {width: 100%;  padding:0px 20px 20px 20px; text-align: center; color: #7c7b7b; font-size:16px;  }
+.maintext {width: 100%;  padding:0px 0px 20px 0px; text-align: center; color: #7c7b7b; font-size:16px;  }
 .mainError {text-align: center; color: #ec0808; font-size: 16px; width: 100%; }
 .backtolist { text-align: left; color: blueviolet; font-size: 16px; width: 100%; margin-bottom: 20px; }
 
@@ -21,17 +25,18 @@ body { font-family: Arial, Helvetica, sans-serif; }
 .sortcontrols a { text-decoration: none; color: #999999; }
 .sortcontrols a.active { color: #ec0808; }
 
-
 .pagingcontrols {text-align: center; margin:30px 0 10px 0;  font-size: 16px; width: 100%; }
 .pagingcontrols b, .pagingcontrols a { width:auto; padding: 5px 10px; text-align: center; margin: 0 3px; }
 .pagingcontrols b { background-color: #f30; color: #fff; }
 .pagingcontrols a { text-decoration: none; background-color: #ccc; color: #000;  }
  
 
-.formpart { width: 100%; padding:20px; display: flex; flex-direction: column; gap:20px; }
+.formpart { width: 100%; padding:20px 0; display: flex; flex-direction: column; gap:20px; }
 .formpart aside {text-align: center;  font-size: 16px; width: 100%; padding: 10px;  border: 1px solid; margin: 10px 0; }
 .formpart aside.errormessage { background: #ffdddd; color: #ff0000; border-color: #ff9090; }
 .formpart aside.successmessage { background: #d4edda; color: #155724;  border-color: #a5fab9; }
+.formpart aside.infomessage { background: #fffea8; color: #155724;  border-color: #e0dd03; }
+
 .formpart label { padding: 0 0 10px 0; margin: 0;  color: #000; font-size: 16px; width: 100%; }
 .formpart input { margin: 10px 0 10px 0; padding: 10px 15px;  color: #000; font-size: 16px; width: 100%; }
 .formpart button{
@@ -46,7 +51,6 @@ body { font-family: Arial, Helvetica, sans-serif; }
   cursor: pointer;
  }
 .formpart button:hover { background-color: #0056b3; }
-
 
 .btn {
   display: inline-block;

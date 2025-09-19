@@ -7,6 +7,10 @@
 <%- include('../partials/header') %>
 <section class="sectionmin">
   <h1  class="mainheading">Create New User</h1>
+  <p class="maintext">
+    Please fill in the details below to create a new user.
+  </p>
+  
   <form class="formpart" action="/users/create" method="post">
     <% if (error) { %>
       <aside class="errormessage"><%= error %></aside>

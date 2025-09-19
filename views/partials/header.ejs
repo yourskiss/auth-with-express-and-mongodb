@@ -9,23 +9,32 @@
 <body>
   <header class="headerpart">
     <h1>EMP Management System</h1>
-    <nav>
+    <% if (userId) { %>
+      <p>
+        Welcome, <strong><%= userId %></strong>!
+        &nbsp; ||  &nbsp; 
+        <a href="/users/logout">Logout</a>
+      </p>
+    <% } else { %>
+      <p>
+        <a href="/users/register">Register</a>
+          &nbsp; ||  &nbsp;
+        <a href="/users/login">Login</a>
+        </p>
+    <% } %>
+  </header>
+  
+  <% if (userId) { %>
+    <nav class="headnav">
       <a href="/users/create">Add New</a> 
        &nbsp; ||  &nbsp; 
       <a href="/users">View All</a>
         &nbsp; ||  &nbsp; 
-
-      <% if (userId) { %>
-        <a href="/users/password-change">Change Password</a>
-         &nbsp; ||  &nbsp; 
-         <a href="/users/dashboard">Dashboard</a>
-         &nbsp; ||  &nbsp; 
-        <a href="/users/logout">Logout</a>
-      <% } else { %>
-        <a href="/users/login">Login</a>
-      <% } %>
-      
+      <a href="/users/password-change">Change Password</a>
+      &nbsp; ||  &nbsp; 
+      <a href="/users/dashboard">Dashboard</a>
     </nav>
-  </header>
+  <% } %>
+
 </body>
 </html>

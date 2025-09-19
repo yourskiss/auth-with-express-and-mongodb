@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import bcrypt from 'bcrypt';
 import userModels from "../models/userModels.js";
  
@@ -14,73 +13,7 @@ export const handleLogout = async (req, res) => {
     res.redirect('/users/login'); // Redirect to login page
   });
 };
-export const renderLogin = async (req, res) => {
-  res.render('userview/login', { 
-    success:null, 
-    error: null, 
-    email: '' 
-  });
-}
- 
-export const handleLogin = async (req, res) => {
-  const { email, password } = req.body;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
-  if (!email || !password) {
-      return res.status(401).render('userview/login', {
-            success:null, 
-            error: 'Email and Password are required.',
-            email: email
-          });
-    }
-    if (!emailRegex.test(email)) {
-      return res.status(401).render('userview/login', {
-            success:null, 
-            error: 'Enter valid Email ID',
-            email: email
-          });
-    }
-    if (!passwordRegex.test(password)) {
-      return res.status(401).render('userview/login', {
-        success:null, 
-        error: 'Password must be at least 6 characters long and include uppercase, lowercase, number, and special character.',
-        email: email
-      });
-    }
 
-  try {
-    const result = await userModels.findOne({ email });
-    if (!result) {
-      return res.status(409).render('userview/login', {
-          success:null, 
-          error: 'Invalid email id',
-          email: email
-        });
-    }
-    const isMatch = await bcrypt.compare(password, result.password);
-    if (!isMatch) {
-      return res.status(409).render('userview/login', {
-          success:null, 
-          error: 'Invalid password',
-          email: email
-        });
-    }
-    req.session.userId = result._id; // Save user ID in session
-    console.log("session id - ",req.session.userId);
-    return res.status(200).render('userview/login', {
-          success:'Login successful.', 
-          error: null,
-          email: email
-        });
-  } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).render('userview/login', {
-        success:null, 
-        error: 'Internal Server Error',
-        email: email
-    });
-  }
-};
 
  
 export const getAll = async (req, res) => {

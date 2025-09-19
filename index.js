@@ -38,7 +38,7 @@ app.use((req, res, next) => {
 
 app.get("/", (req, res) => {
   // res.send("Hello World");
-  res.redirect('/users');
+  res.redirect('/users/login');
 });
 
 

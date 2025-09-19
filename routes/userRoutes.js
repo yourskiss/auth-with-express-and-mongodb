@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { isAuthenticated } from '../middlewares/authMiddleware.js';
+import { isGuest, isAuthenticated } from '../middlewares/authMiddleware.js';
 import {
     renderAdd, 
     handleAdd,
@@ -10,47 +10,42 @@ import {
     getById,
     handleDelete,
     handleLogout,
-    renderLogin, 
-    handleLogin, 
     renderChangePassword, 
     handleChangePassword,
     renderDashboard,
 } from '../controllers/userController.js';
 
 import { 
+    renderLogin, 
+    handleLogin, 
     renderPasswordForget, 
     handlePasswordForget, 
     renderPasswordOtp, 
     handlePasswordOtp, 
     renderPasswordReset, 
     handlePasswordReset  
-} from '../controllers/userPassword.js';
+} from '../controllers/userGuestController.js';
  
 
 // public routes
-router.get('/', getAll);
-router.get('/detail/:id', getById);
-router.get('/login', renderLogin);
-router.post('/login', handleLogin);
-router.get('/create', renderAdd);
-router.post('/create', handleAdd);
-router.get("/update/:id", renderUpdate);
-router.post("/update/:id", handleUpdate);
-// router.get('/delete/:id', handleDelete);
-router.post('/delete/:id', handleDelete);
-
- 
-
-router.get('/password-forget', renderPasswordForget);
-router.post('/password-forget', handlePasswordForget);
-router.get('/password-otp', renderPasswordOtp);
-router.post('/password-otp', handlePasswordOtp);
-router.get('/password-reset', renderPasswordReset);
-router.post('/password-reset', handlePasswordReset);
-
- 
+router.get('/login', isGuest, renderLogin);
+router.post('/login', isGuest, handleLogin);
+router.get('/password-forget', isGuest, renderPasswordForget);
+router.post('/password-forget', isGuest, handlePasswordForget);
+router.get('/password-otp', isGuest, renderPasswordOtp);
+router.post('/password-otp', isGuest, handlePasswordOtp);
+router.get('/password-reset', isGuest, renderPasswordReset);
+router.post('/password-reset', isGuest, handlePasswordReset);
 
 // protected route
+router.get('/', isAuthenticated, getAll);
+router.get('/detail/:id', isAuthenticated, getById);
+router.get('/create', isAuthenticated, renderAdd);
+router.post('/create', isAuthenticated, handleAdd);
+router.get("/update/:id", isAuthenticated, renderUpdate);
+router.post("/update/:id", isAuthenticated, handleUpdate);
+// router.get('/delete/:id', isAuthenticated, handleDelete);
+router.post('/delete/:id', isAuthenticated, handleDelete);
 router.get('/logout', isAuthenticated, handleLogout);
 router.get('/password-change', isAuthenticated, renderChangePassword);
 router.post('/password-change', isAuthenticated, handleChangePassword);
