@@ -184,7 +184,7 @@ export const handlePasswordOtp = async (req, res) => {
     }
 
     // Store verifyOTP in session
-    req.session.fpStep2 = true; 
+    req.session.fpStep2 = user.otpExpiry; 
     console.log(`verifyOTP Session step 2 - ${req.session.fpStep2}`);
 
     // OTP verified successfully
@@ -211,7 +211,18 @@ export const handlePasswordOtp = async (req, res) => {
 
 export const renderPasswordReset = (req, res) => {
   const email = req.session.fpStep1;
-  if (!req.session.fpStep1 && !req.session.fpStep2) {
+  const expiretime = req.session.fpStep2;
+  if (!email && !expiretime) {
+    return  res.status(400).render('userview/password-reset', {
+      success: null,
+      info:'Verify your email and OTP first.',
+      error: null,
+      email,
+      password:'',
+      confirmPassword:''
+    });
+  }
+  if (email && !expiretime) {
     return  res.status(400).render('userview/password-reset', {
       success: null,
       info:'Please verify OTP first.',
