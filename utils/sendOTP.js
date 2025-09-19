@@ -14,11 +14,14 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendOtpEmail = async (to, otp, senderby) => {
-  senderby === "forget" ? "Password Reset OTP" : "Registation OTP"
+  let sub ="AppName";
+  if(senderby === "forget") { sub = "AppName: Password Reset OTP"; }
+  if(senderby === "register") {sub = "AppName: Registation OTP"; } 
+ 
   const mailOptions = {
     from: process.env.EMAIL_SENDER, // sender address
     to,
-    subject: "AppName : "+ senderby,
+    subject: sub,
    // text: `Your OTP code is ${otp}. It will expire in 5 minutes.`,
     html: `
       <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9;">
