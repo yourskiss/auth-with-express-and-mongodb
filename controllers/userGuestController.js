@@ -126,8 +126,8 @@ export const handlePasswordForget = async (req, res) => {
     console.log(`OTP ${otp} sent to ${email}`);
 
     // Store email in session
- //   req.session.forgetPassword = email; 
-  //  console.log(`forgetPassword Session  - ${req.session.forgetPassword}`);
+    req.session.fpStep1 = email; 
+    console.log(`forgetPassword Session step 1 - ${req.session.fpStep1}`);
 
     res.status(200).render('userview/password-forget', {  
             success: `OTP sent to ${email}. It will expire in ${otpExpireTime} minutes.`,
@@ -145,7 +145,7 @@ export const handlePasswordForget = async (req, res) => {
 };
 
 export const renderPasswordOtp  = (req, res) => {
-  const email = req.session.forgetPassword;
+  const email = req.session.fpStep1;
   if (!email) {
     return  res.status(400).render('userview/password-otp', {
       success: null,
@@ -163,7 +163,7 @@ export const renderPasswordOtp  = (req, res) => {
 }; 
 export const handlePasswordOtp = async (req, res) => {
   const { otp } = req.body;
-  const email = req.session.forgetPassword;
+  const email = req.session.fpStep1;
   try {
     const user = await userModels.findOne({ email });
     if (!user || user.resetOtp !== otp) {
@@ -184,8 +184,8 @@ export const handlePasswordOtp = async (req, res) => {
     }
 
     // Store verifyOTP in session
-    req.session.verifyOTP = true; 
-    console.log(`verifyOTP Session - ${req.session.verifyOTP}`);
+    req.session.fpStep2 = true; 
+    console.log(`verifyOTP Session step 2 - ${req.session.fpStep2}`);
 
     // OTP verified successfully
     res.render('userview/password-otp', {
@@ -210,8 +210,8 @@ export const handlePasswordOtp = async (req, res) => {
 
 
 export const renderPasswordReset = (req, res) => {
-  const email = req.session.forgetPassword;
-  if (!req.session.forgetPassword && !req.session.verifyOTP) {
+  const email = req.session.fpStep1;
+  if (!req.session.fpStep1 && !req.session.fpStep2) {
     return  res.status(400).render('userview/password-reset', {
       success: null,
       info:'Please verify OTP first.',
@@ -233,7 +233,7 @@ export const renderPasswordReset = (req, res) => {
 
 export const handlePasswordReset = async (req, res) => {
   const { password, confirmPassword } = req.body;
-  const email = req.session.forgetPassword;
+  const email = req.session.fpStep1;
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
   if (!password || !confirmPassword) {
     return res.status(400).render('userview/password-reset', {
@@ -288,10 +288,10 @@ export const handlePasswordReset = async (req, res) => {
     }
 
     // Clear session data related to password reset
-    console.log(`Both before bank - ${req.session.verifyOTP} - ${req.session.verifyOTP}`);
-    req.session.forgetPassword = null;
-    req.session.verifyOTP = null;
-    console.log(`Both after bank - ${req.session.verifyOTP} - ${req.session.verifyOTP}`);
+    console.log(`Both before destroy - ${req.session.fpStep1} - ${req.session.fpStep2}`);
+    req.session.fpStep1 = null;
+    req.session.fpStep2 = null;
+    console.log(`Both after destroy - ${req.session.fpStep1} - ${req.session.fpStep2}`);
 
 
     res.render('userview/password-reset', {
