@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { isGuest, isAuthenticated } from '../middlewares/authMiddleware.js';
+import { isGuest, isAuthenticated, checkRole } from '../middlewares/authMiddleware.js';
 import {
     renderAdd, 
     handleAdd,
@@ -9,6 +9,7 @@ import {
     getAll,
     getById,
     handleDelete,
+    handleDeletePost,
     handleLogout,
     renderChangePassword, 
     handleChangePassword,
@@ -46,18 +47,18 @@ router.get('/password-reset', isGuest, renderPasswordReset);
 router.post('/password-reset', isGuest, handlePasswordReset);
 
 // protected route
-router.get('/', isAuthenticated, getAll);
-router.get('/detail/:id', isAuthenticated, getById);
-router.get('/create', isAuthenticated, renderAdd);
-router.post('/create', isAuthenticated, handleAdd);
-router.get("/update/:id", isAuthenticated, renderUpdate);
-router.post("/update/:id", isAuthenticated, handleUpdate);
-// router.get('/delete/:id', isAuthenticated, handleDelete);
-router.post('/delete/:id', isAuthenticated, handleDelete);
-router.get('/logout', isAuthenticated, handleLogout);
-router.get('/password-change', isAuthenticated, renderChangePassword);
-router.post('/password-change', isAuthenticated, handleChangePassword);
-router.get('/dashboard', isAuthenticated, renderDashboard);
+router.get('/', isAuthenticated, checkRole(['admin', 'superadmin']), getAll);
+router.get('/detail/:id', isAuthenticated, checkRole(['admin', 'superadmin']), getById);
+router.get('/create', isAuthenticated, checkRole(['admin', 'superadmin']), renderAdd);
+router.post('/create', isAuthenticated, checkRole(['admin', 'superadmin']), handleAdd);
+router.get('/delete/:id', isAuthenticated, checkRole(['superadmin']), handleDelete);
+router.post('/delete/:id', isAuthenticated, checkRole(['superadmin']), handleDeletePost);
+router.get("/update/:id", checkRole(['user', 'admin', 'superadmin']), renderUpdate);
+router.post("/update/:id", checkRole(['user', 'admin', 'superadmin']), handleUpdate);
+router.get('/logout', isAuthenticated, checkRole(['user', 'admin', 'superadmin']),  handleLogout);
+router.get('/password-change', isAuthenticated, checkRole(['user', 'admin', 'superadmin']), renderChangePassword);
+router.post('/password-change', isAuthenticated, checkRole(['user', 'admin', 'superadmin']), handleChangePassword);
+router.get('/dashboard', isAuthenticated, checkRole(['user', 'admin', 'superadmin']), renderDashboard);
 
 
 export const userRoutes = router;

@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
-import bcrypt from 'bcrypt';
 import userModels from "../models/userModels.js";
- 
+import { hashedPassword, comparePassword } from '../utils/password.js';
 
 
 export const handleLogout = async (req, res) => {
@@ -109,12 +108,12 @@ export const renderAdd = async (req, res) => {
   });
 }
 export const handleAdd = async (req, res) => {
-  const { fullname, mobile, email, password } = req.body;
+  const { fullname, mobile, email, password, role } = req.body;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const mobileRegex = /^[6-9]\d{9}$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
-  const data = {fullname, mobile, email}
-  if (!fullname || !mobile || !email || !password) {
+  const data = {fullname, mobile, email, password, role}
+  if (!fullname || !mobile || !email || !password || !role) {
     return res.status(401).render('userview/create', {
           success:null,
           error: 'All fields are required.',
@@ -143,9 +142,8 @@ export const handleAdd = async (req, res) => {
     });
   }
   try {
-    const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const ud = { fullname, mobile, email, password: hashedPassword }
+    const hashedWithSaltPassword = await hashedPassword(password)
+    const ud = { fullname, mobile, email, password:hashedWithSaltPassword, role, otpTemp:null, otpExpiry:null  }
     const result = await userModels.create(ud);
     console.log("New User created: ", result);
     return res.status(200).render('userview/create', {
@@ -175,7 +173,7 @@ export const renderUpdate = async (req, res) => {
   const { id } = req.params;
   const { page, sortBy, order } = req.query;
   const querydata = `?page=${page}&sortBy=${sortBy}&order=${order}`;
-  const datablank = { fullname:'', email:'', mobile:'' };
+  const datablank = { fullname:'', email:'', mobile:'', role:'' };
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).render("userview/update", { 
         success:null, 
@@ -214,9 +212,9 @@ export const renderUpdate = async (req, res) => {
   }
 };
 export const handleUpdate = async (req, res) => {
-  const { querydata, fullname, email, mobile } = req.body;
+  const { querydata, fullname, email, mobile, role } = req.body;
   const { id } = req.params;
-  const data = { fullname, email, mobile };
+  const data = { fullname, email, mobile, role };
  
   const mobileRegex = /^[6-9]\d{9}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -248,9 +246,11 @@ export const handleUpdate = async (req, res) => {
     });
   }
   try {
+
+    const newdata = {...data, otpTemp:null, otpExpiry:null }
     const updated = await userModels.findByIdAndUpdate(
       id,
-      data,
+      newdata,
       { new: true, runValidators: true }
     );
     if (!updated)  {
@@ -294,7 +294,35 @@ export const handleUpdate = async (req, res) => {
 };
 
 
+
 export const handleDelete = async (req, res) => {
+  let { id } = req.params;
+  let { page, sortBy, order} = req.query
+  console.log(id, page, sortBy, order)
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ message: 'Invalid User ID' });
+  }
+  try {
+    let deleted = await userModels.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).send("User not deleted");
+    }
+    let limit = process.env.RECORD_LIMIT;  
+    let remainingCount = await userModels.countDocuments();
+    let totalPages = Math.ceil(remainingCount / limit);
+    if (page > totalPages && totalPages > 0) { page = totalPages;}
+    if (totalPages === 0) { page = 1;}
+    let redirectQuery = `?page=${page}&sortBy=${sortBy}&order=${order}`;
+    res.redirect(`/users/${redirectQuery}`);
+    console.log("User deleted:", deleted);
+  } catch (error) {
+    console.error('Error deleting User:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+ 
+export const handleDeletePost = async (req, res) => {
   const { id } = req.params;
   let page = parseInt(req.body.page) || 1;  
   let sortBy = req.body.sortBy || 'createdAt';
@@ -320,7 +348,7 @@ export const handleDelete = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
+ 
 
 
 export const renderChangePassword = (req, res) => {
@@ -381,7 +409,7 @@ export const handleChangePassword = async (req, res) => {
         success:null 
       });
     }
-    const isMatch = await bcrypt.compare(oldpassword, user.password);
+    const isMatch = comparePassword(oldpassword, user.password);
     if (!isMatch) {
       return res.status(409).render('userview/password-change', { 
         userSessionId: req.session.userId, 
@@ -390,9 +418,7 @@ export const handleChangePassword = async (req, res) => {
         success:null 
       });
     }
-    const salt = await bcrypt.genSalt(12);
-    const hashedNewPassword = await bcrypt.hash(newpassword, salt);
-    user.password = hashedNewPassword;
+    user.password = await hashedPassword(newpassword);
     const result = await user.save();
      console.log("New User created: ", result);
     res.status(200).render('userview/password-change', {

@@ -6,8 +6,12 @@ const tblSchema = new mongoose.Schema(
       mobile: { type: String, required: true, unique: true },
       email: { type: String, required: true, unique: true },
       password: { type: String, required: true, trim: true   },
-
-      resetOtp: { type: String },
+      role: { 
+        type: String, 
+        required: true, 
+        enum: ['user', 'admin', 'superadmin'] 
+      },
+      otpTemp: { type: String },
       otpExpiry: { type: Date }
   },
   { timestamps: true }

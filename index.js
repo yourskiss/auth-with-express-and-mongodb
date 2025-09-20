@@ -1,6 +1,7 @@
 import express from "express";
 const app = express();
 import session from 'express-session';
+import MongoStore from 'connect-mongo';
 
 import { PORT } from "./config/env.js";
 import connectDB from "./config/db.js";
@@ -11,9 +12,18 @@ connectDB();
 
 // genrate session
 app.use(session({
-  secret: process.env.SECRET_KEY,  
+  secret: process.env.SECRET_KEY,
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    ttl: 60 * 60, 
+  }),
+  cookie: {
+    maxAge: 60 * 60 * 1000, 
+    httpOnly: true,  
+    secure: false  
+  }
 }));
 
 // make public folder accessible for public use
@@ -30,9 +40,9 @@ app.use(express.json());
 
 
 
-// get user session id value
+// get user session value
 app.use((req, res, next) => {
-  res.locals.userId = req.session.userId || null;
+  res.locals.user = req.session.user || null;
   next();
 });
 

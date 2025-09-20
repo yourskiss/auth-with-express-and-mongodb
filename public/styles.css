@@ -6,7 +6,7 @@ body { font-family: Arial, Helvetica, sans-serif; }
 .headerpart p {color: #fff; font-size:16px; }
 .headerpart p a { color: #fff;  }
 
-.headnav { background-color: rgb(39, 1, 82); width: 100%; padding:10px 20px; box-sizing: border-box; display: flex; justify-content: space-end; align-items: center; flex-wrap: wrap; color: #fff; font-size:16px; }
+.headnav { background-color: rgb(39, 1, 82); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; width: 100%; padding:10px 20px; box-sizing: border-box; display: flex; justify-content: space-end; align-items: center; flex-wrap: wrap; color: #fff; font-size:16px; }
 .headnav a { color: #fff;  }
 
 .footerpart {  background-color: blueviolet;  box-sizing: border-box; width: 100%; padding: 20px; }
@@ -38,7 +38,7 @@ body { font-family: Arial, Helvetica, sans-serif; }
 .formpart aside.infomessage { background: #fffea8; color: #155724;  border-color: #e0dd03; }
 
 .formpart label { padding: 0 0 10px 0; margin: 0;  color: #000; font-size: 16px; width: 100%; }
-.formpart input { margin: 10px 0 10px 0; padding: 10px 15px;  color: #000; font-size: 16px; width: 100%; }
+.formpart input, select { margin: 10px 0 10px 0; padding: 10px 15px;  color: #000; font-size: 16px; width: 100%; }
 .formpart button{
     display: inline-block;
   padding: 10px 25px;

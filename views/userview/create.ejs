@@ -53,7 +53,17 @@
         <input 
             type="text" 
             name="password" 
+            value="<%= data.password || '' %>"
         />
+    </div>
+    <div> 
+        <label>Role:</label>
+        <select name="role">
+          <option value="" disabled <%= !data.role ? 'selected' : '' %>>Select</option>
+          <option value="user" <%= data.role === 'user' ? 'selected' : '' %>>User</option>
+          <option value="admin" <%= data.role === 'admin' ? 'selected' : '' %>>Admin</option>
+          <option value="superadmin" <%= data.role === 'superadmin' ? 'selected' : '' %>>Superadmin</option>
+        </select>
     </div>
     <div>
       <button type="submit">Submit</button>

@@ -1,8 +1,9 @@
-import bcrypt from 'bcrypt';
+ 
 import { sendOtpEmail } from '../utils/sendOTP.js';
 import userModels from "../models/userModels.js";
-
-
+import { hashedPassword, comparePassword } from '../utils/password.js';
+import otpGenrater from '../utils/genrateOTP.js';
+ 
 export const renderRegister = async (req, res) => {
   const data = {fullname: '', mobile: '', email: '', password: '', confirmpassword: '' }
   res.render('userview/register', { 
@@ -13,11 +14,16 @@ export const renderRegister = async (req, res) => {
 }
  
 export const handleRegister = async (req, res) => {
+ const { otpTemp, otpExpiry, otpTime } = otpGenrater();
+console.log("Register - ", otpTemp, " - ", otpExpiry, " - ", otpTime);
+
 const { fullname, mobile, email, password, confirmpassword } = req.body;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const mobileRegex = /^[6-9]\d{9}$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;  
   const data = { fullname, mobile, email, password, confirmpassword }
+
+  
 
   if (!fullname || !mobile || !email || !password || !confirmpassword) {
     return res.status(401).render('userview/register', {
@@ -67,19 +73,13 @@ const { fullname, mobile, email, password, confirmpassword } = req.body;
         });
     }
 
-  try {
-    // Generate 6 digit random number
-    const otpExpireTime = process.env.OTP_TIME || 10;
-    const genratedotp = Math.floor(100000 + Math.random() * 900000).toString();
-    const createdAt = new Date(Date.now() + otpExpireTime * 60 * 1000); // minutes from now
-    
-
+  try { 
     // ✅ Send OTP email
-    await sendOtpEmail(email, genratedotp, "register");  
-    console.log(`OTP ${genratedotp} sent to ${email}`);
+    await sendOtpEmail(email, otpTemp, "register");  
+    console.log(`OTP ${otpTemp} sent to ${email}`);
 
     // ✅ Store user data + OTP in session
-    const newdata = { ...data,  genratedotp,  createdAt };
+    const newdata = { ...data, otpTemp,  otpExpiry };
     req.session.tempUser = newdata;
     console.log("temp user session - ", newdata)
     req.session.save((err) => {
@@ -92,7 +92,7 @@ const { fullname, mobile, email, password, confirmpassword } = req.body;
       }
     });
     res.status(200).render('userview/register', {
-          success:'OTP sent to your email. Please verify to complete registration.',
+          success:`OTP sent to ${email}. It will expire in ${otpTime} minutes.`,
           error: null,
           data 
       });
@@ -134,8 +134,8 @@ export const handleVerifyRegister = async (req, res) => {
       error: null, 
       email: ''
     });
-  }
- const { fullname, mobile, email, password, genratedotp, createdAt } = req.session.tempUser;
+  } 
+ const { fullname, mobile, email, password, otpTemp, otpExpiry } = req.session.tempUser;
  const { otp } = req.body;
  
   if (!otp || otp.length !== 6) {
@@ -146,15 +146,15 @@ export const handleVerifyRegister = async (req, res) => {
         email
       });
   }
-  if (new Date(createdAt) < new Date()) {
+  if (new Date(otpExpiry) < new Date()) {
       return res.status(400).render('userview/register-verify', {
         success: null,
         info:null,
         error: 'OTP has expired',
         email
       });
-    }
-  if (genratedotp !== otp) {
+  }
+  if (otpTemp !== otp) {
       return res.status(400).render('userview/register-verify', {
         success: null,
         info:null,
@@ -162,12 +162,9 @@ export const handleVerifyRegister = async (req, res) => {
         email
       });
   }
- try {
-  // password hashing
-  const salt = await bcrypt.genSalt(12);
-  const hashedPassword = await bcrypt.hash(password, salt);
-  const finaldata = { fullname, mobile, email, password:hashedPassword } 
-  
+ try { 
+    let hasshedWithSaltPassword = await hashedPassword(password);
+    const finaldata = { fullname, mobile, email, password:hasshedWithSaltPassword, role:'user', otpTemp:null, otpExpiry:null } 
     const result = await userModels.create(finaldata);
     if(!result)
     {
@@ -243,7 +240,7 @@ export const handleLogin = async (req, res) => {
           email: email
         });
     }
-    const isMatch = await bcrypt.compare(password, result.password);
+    const isMatch = await comparePassword(password, result.password); 
     if (!isMatch) {
       return res.status(409).render('userview/login', {
           success:null, 
@@ -251,13 +248,28 @@ export const handleLogin = async (req, res) => {
           email: email
         });
     }
-    req.session.userId = result._id; // Save user ID in session
-    console.log("session id - ",req.session.userId);
-    return res.status(200).render('userview/login', {
+    req.session.user = {
+      id: result._id,
+      fullname: result.fullname,
+      email: result.email,
+      role: result.role
+    };
+   req.session.save(err => {
+      if (err) {
+        console.error("Session not saved", err);
+        res.status(501).render('userview/login', {
+            success:null, 
+            error: 'Session error',
+            email: email
+        });
+      }
+      console.log("session id - ", req.session.user);
+      return res.status(200).render('userview/login', {
           success:'Login successful.', 
           error: null,
           email: email
-        });
+      });
+    });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).render('userview/login', {
@@ -278,6 +290,8 @@ export const renderPasswordForget = (req, res) => {
   });
 };  
 export const handlePasswordForget = async (req, res) => {
+  const { otpTemp, otpExpiry, otpTime } = otpGenrater();
+  console.log("Password Forget - ", otpTemp, " - ", otpExpiry, " - ", otpTime);
   const { email } = req.body;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email) {
@@ -304,30 +318,26 @@ export const handlePasswordForget = async (req, res) => {
         email
       });
     }
-    
-    // Generate 6 digit random number
-    const otpExpireTime = process.env.OTP_TIME || 10;
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = new Date(Date.now() + otpExpireTime * 60 * 1000); // minutes from now
-    
+
+ 
     // Save OTP and time in DB
-    checkuserbyemail.resetOtp = otp;
-    checkuserbyemail.otpExpiry = expiry;
+    checkuserbyemail.otpTemp = otpTemp;
+    checkuserbyemail.otpExpiry = otpExpiry;
 
     // Update user with OTP details
     await checkuserbyemail.save();  
-    console.log(`OTP ${otp} genrated, It will be expire in - ${otpExpireTime} minutes. ===> ${expiry}`);
+    console.log(`OTP ${otpTemp} genrated, It will be expire in - ${otpTime} minutes. ===> ${otpExpiry}`);
 
     // Send OTP to email
-    await sendOtpEmail(email, otp, "forget"); 
-    console.log(`OTP ${otp} sent to ${email}`);
+    await sendOtpEmail(email, otpTemp, "forget"); 
+    console.log(`OTP ${otpTemp} sent to ${email}`);
 
     // Store email in session
     req.session.fpStep1 = email; 
     console.log(`forgetPassword Session step 1 - ${req.session.fpStep1}`);
 
     res.status(200).render('userview/password-forget', {  
-            success: `OTP sent to ${email}. It will expire in ${otpExpireTime} minutes.`,
+            success: `OTP sent to ${email}. It will expire in ${otpTime} minutes.`,
             error: null,
             email
         });
@@ -358,19 +368,20 @@ export const renderPasswordOtp  = (req, res) => {
     email
   });
 }; 
+
 export const handlePasswordOtp = async (req, res) => {
   const { otp } = req.body;
   const email = req.session.fpStep1;
   try {
     const user = await userModels.findOne({ email });
-    if (!user || user.resetOtp !== otp) {
+    if (!user || user.otpTemp !== otp) {
       return res.status(400).render('userview/password-otp', {
         success: null,
         info:null,
         error: 'Invalid OTP',
         email
       });
-    }
+    } 
     if (user.otpExpiry < new Date()) {
       return res.status(400).render('userview/password-otp', {
         success: null,
@@ -477,7 +488,7 @@ export const handlePasswordReset = async (req, res) => {
   try {
     // check if Entered password is different from Previous password
     const getByEmail = await userModels.findOne({ email });
-    const isSame = await bcrypt.compare(password, getByEmail.password);
+    const isSame = await comparePassword(password, getByEmail.password);  
     if (isSame) {
       return res.status(409).render('userview/password-reset', {
         success: null,
@@ -488,12 +499,11 @@ export const handlePasswordReset = async (req, res) => {
         confirmPassword:''
       });
     }
-    
-    const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(password, salt);
+ 
+    let hasshedPasswordWithSalt = await hashedPassword(password);
     const user = await userModels.findOneAndUpdate(
       { email },
-      { password: hashedPassword, resetOtp: null, otpExpiry: null },
+      { password:hasshedPasswordWithSalt, otpTemp: null, otpExpiry: null },
       { new: true }
     );
 

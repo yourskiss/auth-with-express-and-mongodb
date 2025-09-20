@@ -9,9 +9,9 @@
 <body>
   <header class="headerpart">
     <h1>EMP Management System</h1>
-    <% if (userId) { %>
+    <% if (user) { %>
       <p>
-        Welcome, <strong><%= userId %></strong>!
+        Welcome, <strong><%= user.fullname %></strong> (<%= user.role %>)
         &nbsp; ||  &nbsp; 
         <a href="/users/logout">Logout</a>
       </p>
@@ -24,15 +24,20 @@
     <% } %>
   </header>
   
-  <% if (userId) { %>
+ <% if (user) { %>
     <nav class="headnav">
-      <a href="/users/create">Add New</a> 
-       &nbsp; ||  &nbsp; 
-      <a href="/users">View All</a>
+      <% if(user.role === 'superadmin' || user.role === 'admin' ) { %>
+      <p>
+        <a href="/users/create">Add New</a> 
         &nbsp; ||  &nbsp; 
-      <a href="/users/password-change">Change Password</a>
-      &nbsp; ||  &nbsp; 
-      <a href="/users/dashboard">Dashboard</a>
+        <a href="/users">View All</a>
+      </p>
+      <% } %>
+      <p>
+        <a href="/users/password-change">Change Password</a>
+        &nbsp; ||  &nbsp; 
+        <a href="/users/dashboard">Dashboard</a>
+      </p>
     </nav>
   <% } %>
 

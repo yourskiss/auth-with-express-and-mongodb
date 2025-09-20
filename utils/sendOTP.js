@@ -15,8 +15,8 @@ const transporter = nodemailer.createTransport({
 
 export const sendOtpEmail = async (to, otp, senderby) => {
   let sub ="AppName";
-  if(senderby === "forget") { sub = "AppName: Password Reset OTP"; }
-  if(senderby === "register") {sub = "AppName: Registation OTP"; } 
+  if(senderby === "forget") { sub = `${process.env.APP_NAME} : Password Reset OTP`; }
+  if(senderby === "register") {sub = `${process.env.APP_NAME} : Registation OTP`; } 
  
   const mailOptions = {
     from: process.env.EMAIL_SENDER, // sender address
@@ -33,7 +33,7 @@ export const sendOtpEmail = async (to, otp, senderby) => {
             <span style="font-size: 32px; color: #2b2b2b; font-weight: bold; letter-spacing: 4px;">${otp}</span>
           </div>
           <p style="font-size: 14px; color: #999999;">If you didn't request this, please ignore this email.</p>
-          <p style="font-size: 14px; color: #999999;">Regards,<br>Test Email</p>
+          <p style="font-size: 14px; color: #999999;">Regards,<br>${process.env.APP_NAME}</p>
         </div>
       </div>
     `
