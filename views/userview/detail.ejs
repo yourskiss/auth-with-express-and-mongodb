@@ -6,7 +6,10 @@
 <body>
 <%- include('../partials/header') %>
 <section class="sectionmin">
-    <h1 class="mainheading">User Details (<%= result.id %>)</h1>
+    <h1 class="mainheading">
+      <% if (user.role === 'superadmin') { %>Admin Details<% } else {  %>User Details<% } %>
+    </h1>
+
     <% if (error) { %>
       <h6 class="mainError"><%= error %></h6>
     <% } else { %>

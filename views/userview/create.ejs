@@ -6,7 +6,12 @@
 <body>
 <%- include('../partials/header') %>
 <section class="sectionmin">
-  <h1  class="mainheading">Create New User</h1>
+  <h1  class="mainheading"></h1>
+
+  <h1 class="mainheading">
+    <% if (user.role === 'superadmin') { %>Create New Admin<% } else {  %>Create New User <% } %>
+  </h1>
+
   <p class="maintext">
     Please fill in the details below to create a new user.
   </p>
@@ -60,9 +65,11 @@
         <label>Role:</label>
         <select name="role">
           <option value="" disabled <%= !data.role ? 'selected' : '' %>>Select</option>
-          <option value="user" <%= data.role === 'user' ? 'selected' : '' %>>User</option>
-          <option value="admin" <%= data.role === 'admin' ? 'selected' : '' %>>Admin</option>
-          <option value="superadmin" <%= data.role === 'superadmin' ? 'selected' : '' %>>Superadmin</option>
+
+          <% if(user.role === 'admin') { %> <option value="user" <%= data.role === 'user' ? 'selected' : '' %>>User</option> >User</option> <% } %>
+          <% if(user.role === 'superadmin') { %> <option value="admin" <%= data.role === 'admin' ? 'selected' : '' %>>Admin</option> >Admin</option> <% } %>
+
+          <!-- <option value="superadmin" <%= data.role === 'superadmin' ? 'selected' : '' %>>Superadmin</option> -->
         </select>
     </div>
     <div>

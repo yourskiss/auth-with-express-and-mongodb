@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+
 const tblSchema = new mongoose.Schema(
   {
       fullname: { type: String, required: true, trim: true },
@@ -9,7 +10,8 @@ const tblSchema = new mongoose.Schema(
       role: { 
         type: String, 
         required: true, 
-        enum: ['user', 'admin', 'superadmin'] 
+        enum: ['user', 'admin', 'superadmin'] ,
+        default: 'user'
       },
       otpTemp: { type: String },
       otpExpiry: { type: Date }

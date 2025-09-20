@@ -17,6 +17,7 @@ export const handleLogout = async (req, res) => {
 
  
 export const getAll = async (req, res) => {
+  const usersession = req.session.user;
   const page = parseInt(req.query.page) || 1; // current page number
   const limit = process.env.RECORD_LIMIT; 
   const skip = (page - 1) * limit;
@@ -26,11 +27,18 @@ export const getAll = async (req, res) => {
   const sortOptions = {};
   sortOptions[sortBy] = order;
 
+  let query = {};
+  if (usersession.role === 'admin') {
+    query = { role: { $nin: ['superadmin', 'admin'] } };
+  }
+  if (usersession.role === 'superadmin') {
+    query = { role: { $nin: ['superadmin', 'user'] } };
+  }
   try {
-    const totalCount = await userModels.countDocuments();
+    const totalCount = await userModels.countDocuments(query);
     const totalPages = Math.ceil(totalCount / limit);
     
-    const result = await userModels.find({}).collation({ locale: 'en', strength: 1 }).sort(sortOptions).skip(skip).limit(limit);
+    const result = await userModels.find(query).collation({ locale: 'en', strength: 1 }).sort(sortOptions).skip(skip).limit(limit);
     if (!result || result.length === 0) {
       return res.status(409).render("userview/list", {
         error: "No User found",
@@ -354,7 +362,7 @@ export const handleDeletePost = async (req, res) => {
 export const renderChangePassword = (req, res) => {
   const data = { oldpassword:'', newpassword:'', confirmpassword:'' }
   res.status(200).render('userview/password-change', { 
-    userSessionId: req.session.userId, 
+    userSession: req.session.user, 
     error:null, 
     data, 
     success:null 
@@ -366,9 +374,10 @@ export const handleChangePassword = async (req, res) => {
   const data = { oldpassword, newpassword, confirmpassword }
   const datablank = { oldpassword:'', newpassword:'', confirmpassword:'' }
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+  const userSession = req.session.user
   if (!oldpassword || !newpassword || !confirmpassword) {
     return res.status(400).render('userview/password-change', { 
-      userSessionId: req.session.userId, 
+      userSession, 
       error:'All fields are required.', 
       data, 
       success:null 
@@ -376,7 +385,7 @@ export const handleChangePassword = async (req, res) => {
   }
   if (!passwordRegex.test(oldpassword)) {
     return res.status(400).render('userview/password-change', { 
-      userSessionId: req.session.userId, 
+      userSession, 
       error:'Old Password must be at least 6 characters long and include uppercase, lowercase, number, and special character.', 
       data, 
       success:null 
@@ -384,7 +393,7 @@ export const handleChangePassword = async (req, res) => {
   }
   if (!passwordRegex.test(newpassword)) {
     return res.status(400).render('userview/password-change', { 
-      userSessionId: req.session.userId, 
+      userSession, 
       error:'New Password must be at least 6 characters long and include uppercase, lowercase, number, and special character.', 
       data, 
       success:null 
@@ -392,7 +401,7 @@ export const handleChangePassword = async (req, res) => {
   }
   if (newpassword !== confirmpassword) {
     return res.status(400).render('userview/password-change', { 
-      userSessionId: req.session.userId, 
+      userSession, 
       error:'New password and confirm password do not match.', 
       data, 
       success:null 
@@ -400,10 +409,11 @@ export const handleChangePassword = async (req, res) => {
   }
 
   try {
-    const user = await userModels.findById(req.session.userId);
+    
+    const user = await userModels.findById(userSession.id);
     if (!user) {
       return res.status(409).render('userview/password-change', { 
-        userSessionId: req.session.userId, 
+        userSession, 
         error:'User not found.', 
         data:datablank, 
         success:null 
@@ -412,7 +422,7 @@ export const handleChangePassword = async (req, res) => {
     const isMatch = comparePassword(oldpassword, user.password);
     if (!isMatch) {
       return res.status(409).render('userview/password-change', { 
-        userSessionId: req.session.userId, 
+        userSession, 
         error:'Old password is incorrect.', 
         data:datablank, 
         success:null 
@@ -422,7 +432,7 @@ export const handleChangePassword = async (req, res) => {
     const result = await user.save();
      console.log("New User created: ", result);
     res.status(200).render('userview/password-change', {
-      userSessionId: req.session.userId,
+      userSession,
       error:null,
       data: datablank,
       success: 'Password changed successfully.'
@@ -430,7 +440,7 @@ export const handleChangePassword = async (req, res) => {
   } catch (err) {
     console.error('Password change error:', err);
     res.status(500).render('userview/password-change', { 
-      userSessionId: req.session.userId, 
+      userSession, 
       error:'Internal server error.', 
       data, 
       success:null 
@@ -440,9 +450,28 @@ export const handleChangePassword = async (req, res) => {
 };
 
 
-export const renderDashboard = (req, res) => {
+export const renderDashboard = async (req, res) => {
+  const userSession = req.session.user;
+  if (!userSession) {
+      return res.status(409).render('userview/dashboard', { 
+       userSession:null, 
+       error:'User Session not available', 
+       data:null
+      });
+  }
+
+  const data = await userModels.findById(userSession.id);
+    if (!data) {
+      return res.status(409).render('userview/dashboard', { 
+       userSession, 
+       error:'Error in data fatching', 
+       data:null
+      });
+    }
   res.status(200).render('userview/dashboard', { 
-    userSessionId: req.session.userId, 
+    userSession, 
+    error:null,
+    data
   });
 };
  

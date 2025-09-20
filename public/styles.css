@@ -29,7 +29,9 @@ body { font-family: Arial, Helvetica, sans-serif; }
 .pagingcontrols b, .pagingcontrols a { width:auto; padding: 5px 10px; text-align: center; margin: 0 3px; }
 .pagingcontrols b { background-color: #f30; color: #fff; }
 .pagingcontrols a { text-decoration: none; background-color: #ccc; color: #000;  }
- 
+
+.bashboardinfo { border: 1px solid #ccc; padding:20px ; margin-top: 30px; width: 100%; gap:20px; display: flex; justify-content:flex-start; flex-wrap: wrap; flex-direction: column; }
+.bashboardinfo p { text-align: left; color: rgb(44, 44, 44); font-size: 16px; }
 
 .formpart { width: 100%; padding:20px 0; display: flex; flex-direction: column; gap:20px; }
 .formpart aside {text-align: center;  font-size: 16px; width: 100%; padding: 10px;  border: 1px solid; margin: 10px 0; }

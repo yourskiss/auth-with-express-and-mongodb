@@ -7,10 +7,52 @@
 <%- include('../partials/header') %>
 <section class="sectionmin">
     <h1 class="mainheading">User Dashboard</h1>
-     <p>
-        User Seesion ID is -
-        <%= userSessionId %>
-    </p>
+ 
+    <% if(error) { %>
+        <p><%= error %></p>
+    <% }  %>
+
+    <a href="/users/update/<%= user.id %>?page=1&sortBy=createdAt&order=asc" class="btn">Update Profile</a>  
+                
+          <div class="bashboardinfo">
+                <p>
+                  <strong>Full Name:</strong> 
+                  <%= data.fullname %>
+                </p>
+                <p>
+                  <strong>Role:</strong> 
+                  <%= data.role %>
+                </p>
+                <p>
+                  <strong>Mobile:</strong> 
+                  <%= data.mobile %>
+                </p>
+                <p>
+                  <strong>Email:</strong> 
+                  <%= data.email %>
+                </p>
+                <p>
+                  <strong>Created At:</strong> 
+                  <%= new Date(data.createdAt).toLocaleString() %>
+                </p>
+                
+                <% 
+                const createdDate = new Date(data.createdAt);
+                const updatedDate = new Date(data.updatedAt);
+                if (createdDate.getTime() < updatedDate.getTime()) { %>
+                  <p>
+                    <strong>Updated At:</strong> 
+                    <%= new Date(data.updatedAt).toLocaleString() %>
+                  </p>
+                <% } %>
+          </div>
+    
+     <!-- <p>
+        User Seesion -
+        <%= userSession.id  %><%= userSession.fullname %><%= userSession.email %><%= userSession.role %>
+    </p> -->
+ 
+ 
 </section>
 <%- include('../partials/footer', { title: 'EMP Management System' }) %>
 </body>

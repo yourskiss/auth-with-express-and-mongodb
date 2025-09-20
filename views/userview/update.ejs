@@ -6,7 +6,9 @@
 <body>
 <%- include('../partials/header') %>
 <section class="sectionmin">
-  <h1 class="mainheading">Update User Details (<%= id %>) </h1>
+  <h1 class="mainheading">
+    <% if (user.role === 'superadmin') { %>Update Admin<% } else {  %>Update User<% } %>
+  </h1>
   <p class="maintext">
     Please update the details below and submit to save changes.
   </p>
@@ -53,15 +55,17 @@
             value="<%= result.email || '' %>"
         />
     </div>
+    <% if(user.role !== 'user') { %>
     <div> 
         <label>Role:</label>
         <select name="role">
           <option value="" disabled <%= !result.role ? 'selected' : '' %>>Select</option>
-          <option value="user" <%= result.role === 'user' ? 'selected' : '' %>>User</option>
-          <option value="admin" <%= result.role === 'admin' ? 'selected' : '' %>>Admin</option>
-          <option value="superadmin" <%= result.role === 'superadmin' ? 'selected' : '' %>>Superadmin</option>
+          <% if(user.role === 'admin') { %> <option value="user" <%= result.role === 'user' ? 'selected' : '' %> >User</option> <% } %>
+          <% if(user.role === 'superadmin') { %> <option value="admin" <%= result.role === 'admin' ? 'selected' : '' %> >Admin</option> <% } %>
+          <!-- <option value="superadmin" <%= result.role === 'superadmin' ? 'selected' : '' %>>Superadmin</option> -->
         </select>
     </div>
+    <% } %>
     <div>
       <button type="submit">Update</button>
     </div>

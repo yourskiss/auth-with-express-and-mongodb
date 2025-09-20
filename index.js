@@ -6,7 +6,7 @@ import MongoStore from 'connect-mongo';
 import { PORT } from "./config/env.js";
 import connectDB from "./config/db.js";
 import { userRoutes } from "./routes/userRoutes.js";
-
+ 
 // Connect to Databse
 connectDB();
 
@@ -47,7 +47,7 @@ app.use((req, res, next) => {
 });
 
 app.get("/", (req, res) => {
-  // res.send("Hello World");
+  // res.send("hello");
   res.redirect('/users/login');
 });
 
