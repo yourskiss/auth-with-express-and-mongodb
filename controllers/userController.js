@@ -180,7 +180,9 @@ export const handleAdd = async (req, res) => {
 export const renderUpdate = async (req, res) => {
   const { id } = req.params;
   const { page, sortBy, order } = req.query;
-  const querydata = `?page=${page}&sortBy=${sortBy}&order=${order}`;
+  const qd = { page, sortBy, order }
+ // console.log(qd, "get - ", page, sortBy, order);
+ 
   const datablank = { fullname:'', email:'', mobile:'', role:'' };
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).render("userview/update", { 
@@ -188,7 +190,7 @@ export const renderUpdate = async (req, res) => {
         error:'Invalid User id', 
         id, 
         result:datablank, 
-        querydata 
+        querydata:qd
       });
   }
   try {
@@ -199,7 +201,7 @@ export const renderUpdate = async (req, res) => {
           error: 'User not found', 
           id, 
           result:datablank, 
-          querydata 
+          querydata:qd
         });
     } 
     return res.status(200).render("userview/update", { 
@@ -207,7 +209,7 @@ export const renderUpdate = async (req, res) => {
         error: null, 
         id, 
         result:result, 
-        querydata 
+        querydata:qd
       });
   } catch (err) {
    return res.status(500).render("userview/update", { 
@@ -215,14 +217,15 @@ export const renderUpdate = async (req, res) => {
       error: 'Internal Server Error', 
       id, 
       result:datablank, 
-      querydata 
+      querydata:qd
     });
   }
 };
 export const handleUpdate = async (req, res) => {
-  const { querydata, fullname, email, mobile, role } = req.body;
+  const { page, sortBy, order, fullname, email, mobile, role } = req.body;
   const { id } = req.params;
   const data = { fullname, email, mobile, role };
+  const qd = { page, sortBy, order }
  
   const mobileRegex = /^[6-9]\d{9}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -232,7 +235,7 @@ export const handleUpdate = async (req, res) => {
       error: 'All fields are required', 
       id, 
       result:data, 
-      querydata 
+      querydata:qd
     });
   }
   if (!mobileRegex.test(mobile)) {
@@ -241,7 +244,7 @@ export const handleUpdate = async (req, res) => {
       error: 'Invalid mobile number', 
       id, 
       result:data, 
-      querydata 
+      querydata:qd
     });
   }
   if (!emailRegex.test(email)) {
@@ -250,7 +253,7 @@ export const handleUpdate = async (req, res) => {
       error: 'Invalid email format', 
       id, 
       result:data, 
-      querydata 
+      querydata:qd 
     });
   }
   try {
@@ -267,18 +270,16 @@ export const handleUpdate = async (req, res) => {
         error: 'User not Updated', 
         id, 
         result:data, 
-        querydata 
+        querydata:qd 
       });
     }
-
-    console.log("User updated: ", updated);
-    return res.status(200).render("userview/update", { 
-      success:'User updated successfully.', 
-      error: null, 
-      id, 
-      result:data, 
-      querydata 
-    });
+      return res.status(200).render("userview/update", { 
+        success:'User updated successfully.', 
+        error: null, 
+        id, 
+        result:data, 
+        querydata:qd
+      });
   } catch (err) {
     if (err.code === 11000) {
       const field = Object.keys(err.keyPattern)[0];
@@ -287,7 +288,7 @@ export const handleUpdate = async (req, res) => {
         error:`${field} already exists`, 
         id, 
         result:data, 
-        querydata 
+        querydata:qd 
       });
     }
     console.error('Error updating user:', err);
@@ -296,7 +297,7 @@ export const handleUpdate = async (req, res) => {
       error: 'Internal Server Error.', 
       id, 
       result:data, 
-      querydata 
+      querydata:qd
     });
   }
 };

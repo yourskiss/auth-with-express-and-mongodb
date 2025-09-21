@@ -14,7 +14,11 @@ const tblSchema = new mongoose.Schema(
         default: 'user'
       },
       otpTemp: { type: String },
-      otpExpiry: { type: Date }
+      otpExpiry: { type: Date },
+
+      isDeleted: { type: Boolean, default: false },
+      deletedAt: { type: Date, default: null },
+      deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
   },
   { timestamps: true }
 );

@@ -12,10 +12,16 @@
   <p class="maintext">
     Please update the details below and submit to save changes.
   </p>
+  
 
   <form class="formpart" action="/users/update/<%= id %>" method="post">
+ 
     <h4 class="backtolist">
-      <a href="/users/<%= querydata %>">Back to List</a>
+     <% if(querydata.page == '0' && querydata.sortBy == '0' && querydata.order == '0') { %> 
+      <a href="/users/dashboard">Back to Dashboard</a>
+    <% } else { %>
+      <a href="/users/?page=<%= querydata.page %>&sortBy=<%= querydata.sortBy %>&order=<%= querydata.order %>">Back to List</a>
+    <% }   %>
     </h4>
     <% if (error) { %>
       <aside class="errormessage"><%= error %></aside>
@@ -23,13 +29,23 @@
     <% if (success) { %>
       <aside class="successmessage"><%= success %></aside>
       <script>
-        setTimeout(() => {
-          window.location.href = "/users/<%= querydata %>";
-        }, 2000); 
+        const page = "<%= querydata.page %>";
+        const sortBy = "<%= querydata.sortBy %>";
+        const order = "<%= querydata.order %>";
+        if (page === '0' && sortBy === '0' && order === '0') {
+          setTimeout(() => {
+            window.location.href = "/users/dashboard";
+          }, 2000);
+        } else {
+          setTimeout(() => {
+            window.location.href = `/users/?page=${page}&sortBy=${sortBy}&order=${order}`;
+          }, 2000);
+        }
       </script>
     <% } %>
-    
-    <input type="hidden" name="querydata" value="<%= querydata %>">
+    <input type="hidden" name="page" value="<%= querydata.page %>">
+    <input type="hidden" name="sortBy" value="<%= querydata.sortBy %>">
+    <input type="hidden" name="order" value="<%= querydata.order %>">
     <div>
         <label>Fullname:</label>
         <input 
