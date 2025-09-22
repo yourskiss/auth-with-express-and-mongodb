@@ -12,9 +12,15 @@
         <p><%= error %></p>
     <% }  %>
 
-    <a href="/users/update/<%= user.id %>?page=0&sortBy=0&order=0" class="btn">Update Profile</a>  
-                
           <div class="bashboardinfo">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <% if (data.profilepicture && data.profilepicture.url) { %>
+                    <img src="<%= data.profilepicture.url %>" alt="Profile Photo" width="100" />
+                  <% } %>
+                  <p>
+                    <a href="/users/update/<%= user.id %>?page=0&sortBy=0&order=0" class="btn btn-update" >Update Profile</a>  
+                  </p>
+                </div>
                 <p>
                   <strong>Full Name:</strong> 
                   <%= data.fullname %>

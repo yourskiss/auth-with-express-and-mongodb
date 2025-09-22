@@ -9,14 +9,15 @@
     <h1 class="mainheading">
       <% if (user.role === 'superadmin') { %>Admin Details<% } else {  %>User Details<% } %>
     </h1>
+    <p class="backto">
+      <a href="/users/<%= querydata %>" class="btn btn-back">Back</a>
+    </p>
 
     <% if (error) { %>
       <h6 class="mainError"><%= error %></h6>
     <% } else { %>
-    <h4 class="backtolist">
-      <a href="/users/<%= querydata %>">Back to List</a>
-    </h4>
-    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; width: 100%; display: flex; justify-content: space-between;">
+    
+    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;width: 100%; display: flex; justify-content: space-between; align-items: center;">
         <p>
             <strong>Full Name:</strong> <%= result.fullname %> <br>
             <strong>Mobile:</strong> <%= result.mobile %><br>
@@ -29,6 +30,9 @@
                   <strong>Updated At:</strong> <%= new Date(result.updatedAt).toLocaleString() %><br>
             <% } %>
         </p>
+         <% if (result.profilepicture && result.profilepicture.url) { %>
+                    <img src="<%= result.profilepicture.url %>" alt="Profile Photo" width="100" />
+        <% } %>
     </div>
     <% } %>
 </section>

@@ -1,4 +1,3 @@
- 
 import { sendOtpEmail } from '../utils/sendOTP.js';
 import userModels from "../models/userModels.js";
 import { hashedPassword, comparePassword } from '../utils/password.js';
@@ -512,7 +511,7 @@ export const handlePasswordReset = async (req, res) => {
         email,
         success: null,
         info:null,
-        error: 'User not found',
+        error: 'Record not found',
         password,
         confirmPassword
       });

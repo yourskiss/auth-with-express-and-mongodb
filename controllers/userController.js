@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 import userModels from "../models/userModels.js";
 import { hashedPassword, comparePassword } from '../utils/password.js';
 
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export const handleLogout = async (req, res) => {
   req.session.destroy(err => {
@@ -34,6 +40,8 @@ export const getAll = async (req, res) => {
   if (usersession.role === 'superadmin') {
     query = { role: { $nin: ['superadmin', 'user'] } };
   }
+  query.isDeleted = false; 
+
   try {
     const totalCount = await userModels.countDocuments(query);
     const totalPages = Math.ceil(totalCount / limit);
@@ -41,7 +49,7 @@ export const getAll = async (req, res) => {
     const result = await userModels.find(query).collation({ locale: 'en', strength: 1 }).sort(sortOptions).skip(skip).limit(limit);
     if (!result || result.length === 0) {
       return res.status(409).render("userview/list", {
-        error: "No User found",
+        error: "No record found",
         result: [],
         currentPage: 1,
         totalPages: 1,
@@ -71,6 +79,64 @@ export const getAll = async (req, res) => {
 };
 
 
+ 
+export const getHided = async (req, res) => {
+  const usersession = req.session.user;
+  const page = parseInt(req.query.page) || 1; // current page number
+  const limit = process.env.RECORD_LIMIT; 
+  const skip = (page - 1) * limit;
+  
+  const sortBy = req.query.sortBy || 'createdAt'; // default field
+  const order = req.query.order === 'desc' ? -1 : 1; // default A-Z
+  const sortOptions = {};
+  sortOptions[sortBy] = order;
+
+  let query = {};
+  if (usersession.role === 'admin') {
+    query = { role: { $nin: ['superadmin', 'admin'] } };
+  }
+  if (usersession.role === 'superadmin') {
+    query = { role: { $nin: ['superadmin', 'user'] } };
+  }
+  query.isDeleted = true; 
+
+  try {
+    const totalCount = await userModels.countDocuments(query);
+    const totalPages = Math.ceil(totalCount / limit);
+    
+    const result = await userModels.find(query).collation({ locale: 'en', strength: 1 }).sort(sortOptions).skip(skip).limit(limit);
+    if (!result || result.length === 0) {
+      return res.status(409).render("userview/list-hide", {
+        error: "No record found",
+        result: [],
+        currentPage: 1,
+        totalPages: 1,
+        sortBy,
+        order
+      });
+    }
+    res.render("userview/list-hide", {
+      error: null,
+      result,
+      currentPage: page,
+      totalPages,
+      sortBy,
+      order
+    });
+  } catch (error) {
+    console.error("Error fetching User:", error.message);
+    res.status(500).render("userview/list-hide", {
+      error: "Internal Server Error",
+      result: [],
+      currentPage: 1,
+      totalPages: 1,
+      sortBy,
+      order
+    });
+  }
+};
+
+
 export const getById = async (req, res) => {
   const { id } = req.params;
   const { page, sortBy, order } = req.query;
@@ -86,7 +152,7 @@ export const getById = async (req, res) => {
     const result = await userModels.findById(id);
     if (!result) {
       return res.status(404).render('userview/detail', { 
-        error: 'User not found', 
+        error: 'Record not found', 
         result: '', 
         querydata 
       });
@@ -151,7 +217,7 @@ export const handleAdd = async (req, res) => {
   }
   try {
     const hashedWithSaltPassword = await hashedPassword(password)
-    const ud = { fullname, mobile, email, password:hashedWithSaltPassword, role, otpTemp:null, otpExpiry:null  }
+    const ud = { fullname, mobile, email, password:hashedWithSaltPassword, role, otpTemp:null, otpExpiry:null, createdBy:req.session.user.id  }
     const result = await userModels.create(ud);
     console.log("New User created: ", result);
     return res.status(200).render('userview/create', {
@@ -177,56 +243,68 @@ export const handleAdd = async (req, res) => {
 };
 
  
+
+
 export const renderUpdate = async (req, res) => {
   const { id } = req.params;
   const { page, sortBy, order } = req.query;
-  const qd = { page, sortBy, order }
- // console.log(qd, "get - ", page, sortBy, order);
- 
+  const qd = { page, sortBy, order };
   const datablank = { fullname:'', email:'', mobile:'', role:'' };
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).render("userview/update", { 
-        success:null, 
-        error:'Invalid User id', 
-        id, 
-        result:datablank, 
-        querydata:qd
-      });
+      success: null, 
+      error: 'Invalid User id', 
+      id, 
+      result: datablank, 
+      querydata: qd
+    });
   }
   try {
     const result = await userModels.findById(id);
     if (!result) {
       return res.status(404).render("userview/update", { 
-          success:null, 
-          error: 'User not found', 
-          id, 
-          result:datablank, 
-          querydata:qd
-        });
+        success: null, 
+        error: 'Record not found', 
+        id, 
+        result: datablank, 
+        querydata: qd
+      });
     } 
     return res.status(200).render("userview/update", { 
-        success:null, 
-        error: null, 
-        id, 
-        result:result, 
-        querydata:qd
-      });
+      success: null, 
+      error: null, 
+      id, 
+      result: result, 
+      querydata: qd
+    });
   } catch (err) {
-   return res.status(500).render("userview/update", { 
-      success:null, 
+    console.error('Error in renderUpdate:', err);
+    return res.status(500).render("userview/update", { 
+      success: null, 
       error: 'Internal Server Error', 
       id, 
-      result:datablank, 
-      querydata:qd
+      result: datablank, 
+      querydata: qd
     });
   }
 };
 export const handleUpdate = async (req, res) => {
-  const { page, sortBy, order, fullname, email, mobile, role } = req.body;
+const { page, sortBy, order, fullname, email, mobile, role } = req.body;
   const { id } = req.params;
   const data = { fullname, email, mobile, role };
   const qd = { page, sortBy, order }
- 
+
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).render("userview/update", {
+      success: null,
+      error: 'Invalid User id',
+      id,
+      result: { fullname:'', email:'', mobile:'', role:'' },
+      querydata: qd
+    });
+  }
+
   const mobileRegex = /^[6-9]\d{9}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!fullname || !email || !mobile) {
@@ -256,82 +334,144 @@ export const handleUpdate = async (req, res) => {
       querydata:qd 
     });
   }
-  try {
 
-    const newdata = {...data, otpTemp:null, otpExpiry:null }
-    const updated = await userModels.findByIdAndUpdate(
+
+  try {
+    const user = await userModels.findById(id);
+    if (!user) {
+      return res.status(404).render("userview/update", {
+        success: null,
+        error: 'Record not found',
+        id,
+        result: { fullname:'', email:'', mobile:'', role:'' },
+        querydata: qd
+      });
+    }
+
+    const updateData = { fullname, email, mobile, role, updatedBy:req.session.user.id, updatedAt: new Date(), otpTemp:null, otpExpiry:null };
+
+    if (req.file) {
+      // Delete old photo file if it exists
+      if (user.profilepicture && user.profilepicture.filename) {
+        const oldPath = path.join(__dirname, '../public/userprofile', user.profilepicture.filename);
+        fs.unlink(oldPath, (err) => {
+          if (err) {
+            console.error("Failed to delete old photo:", err);
+          }
+        });
+      }
+      // Set new photo info
+      updateData.profilepicture = {
+        url: `/userprofile/${req.file.filename}`,
+        filename: req.file.filename,
+        contentType: req.file.mimetype
+      };
+    }
+
+    const updatedUser = await userModels.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+    if (!updatedUser)  {
+      return res.status(409).render("userview/update", { 
+        success:null, 
+        error: 'Record not Updated', 
+        id, 
+        result:data, 
+        querydata:qd 
+      });
+    }
+    return res.status(200).render("userview/update", {
+      success: 'Profile updated successfully.',
+      error: null,
       id,
-      newdata,
-      { new: true, runValidators: true }
-    );
-    if (!updated)  {
-      return res.status(409).render("userview/update", { 
-        success:null, 
-        error: 'User not Updated', 
-        id, 
-        result:data, 
-        querydata:qd 
-      });
-    }
-      return res.status(200).render("userview/update", { 
-        success:'User updated successfully.', 
-        error: null, 
-        id, 
-        result:data, 
-        querydata:qd
-      });
+      result: updatedUser,
+      querydata: qd
+    });
   } catch (err) {
-    if (err.code === 11000) {
-      const field = Object.keys(err.keyPattern)[0];
-      return res.status(409).render("userview/update", { 
-        success:null, 
-        error:`${field} already exists`, 
-        id, 
-        result:data, 
-        querydata:qd 
-      });
-    }
-    console.error('Error updating user:', err);
-    return res.status(500).render("userview/update", { 
-      success:null, 
-      error: 'Internal Server Error.', 
-      id, 
-      result:data, 
-      querydata:qd
+    console.error('Error updating profile:', err);
+    return res.status(500).render("userview/update", {
+      success: null,
+      error: 'Internal Server Error',
+      id,
+      result: { fullname:'', email:'', mobile:'', role:'' },
+      querydata: qd
     });
   }
 };
 
 
 
-export const handleDelete = async (req, res) => {
+export const handleDisabled = async (req, res) => {
+ // console.log("user session- ",req.session.user)
   let { id } = req.params;
-  let { page, sortBy, order} = req.query
-  console.log(id, page, sortBy, order)
+  let { page, sortBy, order } = req.query;
+
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(404).json({ message: 'Invalid User ID' });
   }
+
   try {
-    let deleted = await userModels.findByIdAndDelete(id);
+    // Soft delete instead of actual delete
+    const deleted = await userModels.findByIdAndUpdate(
+      id,
+      { deletedBy:req.session.user.id, isDeleted: true, deletedAt: new Date(), otpTemp:null, otpExpiry:null },
+      { new: true }
+    );
     if (!deleted) {
-      return res.status(404).send("User not deleted");
+      return res.status(404).send("Record not deleted");
     }
-    let limit = process.env.RECORD_LIMIT;  
-    let remainingCount = await userModels.countDocuments();
+
+    // After soft-deleting, redirect or respond as before
+    let limit = process.env.RECORD_LIMIT;
+    let remainingCount = await userModels.countDocuments({ isDeleted: false });
     let totalPages = Math.ceil(remainingCount / limit);
-    if (page > totalPages && totalPages > 0) { page = totalPages;}
-    if (totalPages === 0) { page = 1;}
+
+    if (page > totalPages && totalPages > 0) { page = totalPages; }
+    if (totalPages === 0) { page = 1; }
     let redirectQuery = `?page=${page}&sortBy=${sortBy}&order=${order}`;
     res.redirect(`/users/${redirectQuery}`);
-    console.log("User deleted:", deleted);
+    console.log("User soft-deleted:", deleted);
   } catch (error) {
-    console.error('Error deleting User:', error.message);
+    console.error('Error soft deleting User:', error.message);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
+export const handleEnabled = async (req, res) => {
+// console.log("user session- ",req.session.user)
+  let { id } = req.params;
+  let { page, sortBy, order } = req.query;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ message: 'Invalid User ID' });
+  }
+
+  try {
+    // Soft delete instead of actual delete
+    const deleted = await userModels.findByIdAndUpdate(
+      id,
+      { deletedBy:null, isDeleted: false, deletedAt:null, otpTemp:null, otpExpiry:null },
+      { new: true }
+    );
+    if (!deleted) {
+      return res.status(404).send("Record not deleted  ");
+    }
+
+    // After soft-deleting, redirect or respond as before
+    let limit = process.env.RECORD_LIMIT;
+    let remainingCount = await userModels.countDocuments({ isDeleted: false });
+    let totalPages = Math.ceil(remainingCount / limit);
+
+    if (page > totalPages && totalPages > 0) { page = totalPages; }
+    if (totalPages === 0) { page = 1; }
+    let redirectQuery = `?page=${page}&sortBy=${sortBy}&order=${order}`;
+    res.redirect(`/users/hide/${redirectQuery}`);
+    console.log("User soft-deleted:", deleted);
+  } catch (error) {
+    console.error('Error soft deleting User:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
  
-export const handleDeletePost = async (req, res) => {
+export const handleDelete = async (req, res) => {
   const { id } = req.params;
   let page = parseInt(req.body.page) || 1;  
   let sortBy = req.body.sortBy || 'createdAt';
@@ -342,15 +482,16 @@ export const handleDeletePost = async (req, res) => {
   try {
     const deleted = await userModels.findByIdAndDelete(id);
     if (!deleted) {
-      return res.status(404).send("User not deleted");
+      return res.status(404).send("Record not deleted");
     }
+
     const limit = process.env.RECORD_LIMIT;  
     const remainingCount = await userModels.countDocuments();
     const totalPages = Math.ceil(remainingCount / limit);
     if (page > totalPages && totalPages > 0) { page = totalPages;}
     if (totalPages === 0) { page = 1;}
     const redirectQuery = `?page=${page}&sortBy=${sortBy}&order=${order}`;
-    res.redirect(`/users/${redirectQuery}`);
+    res.redirect(`/users/hide/${redirectQuery}`);
     console.log("User deleted:", deleted);
   } catch (error) {
     console.error('Error deleting User:', error.message);
@@ -415,7 +556,7 @@ export const handleChangePassword = async (req, res) => {
     if (!user) {
       return res.status(409).render('userview/password-change', { 
         userSession, 
-        error:'User not found.', 
+        error:'Record not found.', 
         data:datablank, 
         success:null 
       });

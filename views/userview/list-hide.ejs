@@ -12,7 +12,7 @@
     <% if (user.role === 'superadmin') { %>Admin List<% } else {  %>User List <% } %>
   </h1>
   <p class="maintext">
-    Disabled <% if (user.role === 'superadmin') { %>Admin<% } else {  %>User<% } %> List <a href="/users/hide">Click Here</a>
+    Enabled <% if (user.role === 'superadmin') { %>Admin<% } else {  %>User<% } %> List <a href="/users">Click Here</a>
   </p>
  
   <% if (error) { %>
@@ -39,10 +39,7 @@
 
     <% result.forEach((res) => { %>
         <div style="border: 1px solid #ccc; padding:5px 10px ; margin-bottom: 10px; width: 100%; display: flex; justify-content: space-between;">
-            <% if (res.profilepicture && res.profilepicture.url) { %>
-                <img src="<%= res.profilepicture.url %>" alt="Profile Photo" width="100px" />
-            <% } %>
-            <p style="width: 300px;">
+            <p>
                 <strong>Full Name:</strong> <%= res.fullname %> || <strong>Role:</strong> <%= res.role %><br> 
                 <strong>Mobile:</strong> <%= res.mobile %> || <strong>Email:</strong> <%= res.email %><br>
                 <strong>Created At:</strong> <%= new Date(res.createdAt).toLocaleString() %><br>
@@ -52,12 +49,16 @@
                 if (createdDate.getTime() < updatedDate.getTime()) { %>
                   <strong>Updated At:</strong> <%= new Date(res.updatedAt).toLocaleString() %><br>
                 <% } %>
-                
+                <strong>Deleted At:</strong> <%= new Date(res.deletedAt).toLocaleString() %><br>
             </p>
-            <div style="width:auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; align-items:flex-start;">
-                <a href="/users/detail/<%= res.id %>?page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn">View </a>  
-                <a href="/users/update/<%= res.id %>?page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn">Update </a>  
-                <a href="/users/disabled/<%= res.id %>?page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn btn-disabled" onclick="return confirm('Are you sure you want to disabled this ?')">Disabled</a>   
+            <div style="width:50%; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; align-items:flex-start;">
+                <a href="/users/enabled/<%= res.id %>?page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn btn-disabled" onclick="return confirm('Are you sure you want to Enabled this?')"> Enabled</a>   
+                <form action="/users/delete/<%= res._id %>" method="POST" style="display: inline; margin: 0; padding: 0; width: auto;" onsubmit="return confirm('Are you sure you want to delete this?')">
+                  <input type="hidden" name="page" value="<%= currentPage || 1 %>">
+                  <input type="hidden" name="sortBy" value="<%= sortBy || 'createdAt' %>">
+                  <input type="hidden" name="order" value="<%= order === 1 ? 'asc' : 'desc' %>">
+                  <button type="submit" class="btn btn-delete">Delete</button>
+                </form>
             </div>
         </div>
     <% }) %>

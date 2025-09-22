@@ -17,9 +17,11 @@ body { font-family: Arial, Helvetica, sans-serif; }
 
 .mainheading {width: 100%; padding: 30px 0 10px 0; text-align: center; color: #000; font-size:30px;  }
 .maintext {width: 100%;  padding:0px 0px 20px 0px; text-align: center; color: #7c7b7b; font-size:16px;  }
+.maintext a {text-decoration: underline;color: #ec0808; }
+.maintext a:hover {  text-decoration: none;  color: #000000; }
 .mainError {text-align: center; color: #ec0808; font-size: 16px; width: 100%; }
-.backtolist { text-align: left; color: blueviolet; font-size: 16px; width: 100%; margin-bottom: 20px; }
-
+.backto { text-align: left; color: blueviolet; font-size: 16px; width: 100%; margin-bottom: 20px; }
+ 
 .sortcontrols {text-align: right; margin:10px 0 30px 0; font-size: 16px; width: 100%; }
 .sortcontrols b { color: #000; }
 .sortcontrols a { text-decoration: none; color: #999999; }
@@ -38,38 +40,17 @@ body { font-family: Arial, Helvetica, sans-serif; }
 .formpart aside.errormessage { background: #ffdddd; color: #ff0000; border-color: #ff9090; }
 .formpart aside.successmessage { background: #d4edda; color: #155724;  border-color: #a5fab9; }
 .formpart aside.infomessage { background: #fffea8; color: #155724;  border-color: #e0dd03; }
-
 .formpart label { padding: 0 0 10px 0; margin: 0;  color: #000; font-size: 16px; width: 100%; }
 .formpart input, select { margin: 10px 0 10px 0; padding: 10px 15px;  color: #000; font-size: 16px; width: 100%; }
-.formpart button{
-    display: inline-block;
-  padding: 10px 25px;
-  background-color: #007bff;
-  font-size: 16px;
-  color: white;
-  border: none;
-  text-decoration: none;
-  border-radius: 4px;
-  cursor: pointer;
- }
+.formpart button{  display: inline-block;  padding: 10px 25px;  background-color: #007bff;  font-size: 16px;  color: white;  border: none;  text-decoration: none;  border-radius: 4px;  cursor: pointer; }
 .formpart button:hover { background-color: #0056b3; }
 
-.btn {
-  display: inline-block;
-  padding: 6px 12px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  text-decoration: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.btn:hover {
-  background-color: #0056b3;
-}
-.btn-delete {
-  background-color: #dc3545;
-}
-.btn-delete:hover {
-  background-color: #c82333;
-}
+.btn { display: inline-block; padding: 6px 12px; background-color: #007bff; color: white; border: none; text-decoration: none; border-radius: 4px; cursor: pointer; }
+.btn:hover { background-color: #05376d; color: white; }
+.btn-delete { padding: 8px 15px; background-color: #f34a5b;}
+.btn-delete:hover {  background-color: #9c0010;}
+.btn-disabled { background-color: #585858; }
+.btn-disabled:hover {  background-color: #c82333;}
+.btn-update { margin: 0 0 10px 10px;  padding: 10px 25px; float: right; }
+.btn-back { margin:0px 0 10px 0;  padding: 8px 20px; float: left; background-color: #585858; color: #fff;  }
+.btn-back:hover { background-color: #f34a5b; }

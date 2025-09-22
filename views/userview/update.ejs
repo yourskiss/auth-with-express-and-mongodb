@@ -12,17 +12,17 @@
   <p class="maintext">
     Please update the details below and submit to save changes.
   </p>
-  
-
-  <form class="formpart" action="/users/update/<%= id %>" method="post">
- 
-    <h4 class="backtolist">
+  <h4 class="backto">
      <% if(querydata.page == '0' && querydata.sortBy == '0' && querydata.order == '0') { %> 
-      <a href="/users/dashboard">Back to Dashboard</a>
+      <a href="/users/dashboard"  class="btn btn-back">Back</a>
     <% } else { %>
-      <a href="/users/?page=<%= querydata.page %>&sortBy=<%= querydata.sortBy %>&order=<%= querydata.order %>">Back to List</a>
+      <a href="/users/?page=<%= querydata.page %>&sortBy=<%= querydata.sortBy %>&order=<%= querydata.order %>" class="btn btn-back">Back</a>
     <% }   %>
-    </h4>
+  </h4>
+
+ 
+
+  <form class="formpart" action="/users/update/<%= id %>" method="post" enctype="multipart/form-data">
     <% if (error) { %>
       <aside class="errormessage"><%= error %></aside>
     <% } %>
@@ -46,6 +46,16 @@
     <input type="hidden" name="page" value="<%= querydata.page %>">
     <input type="hidden" name="sortBy" value="<%= querydata.sortBy %>">
     <input type="hidden" name="order" value="<%= querydata.order %>">
+
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <label>Profile Photo</label>
+          <input type="file" name="profilepicture" accept="image/*" />
+        </div>
+      <% if (result.profilepicture && result.profilepicture.url) { %>
+          <img src="<%= result.profilepicture.url %>" alt="Profile Photo" width="100" />
+      <% } %>
+    </div>
     <div>
         <label>Fullname:</label>
         <input 
@@ -71,7 +81,7 @@
             value="<%= result.email || '' %>"
         />
     </div>
-    <% if(user.role !== 'user') { %>
+    <% if(user.id !== id) { %>
     <div> 
         <label>Role:</label>
         <select name="role">

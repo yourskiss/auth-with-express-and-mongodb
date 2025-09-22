@@ -3,9 +3,17 @@ const app = express();
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
 
+
 import { PORT } from "./config/env.js";
 import connectDB from "./config/db.js";
 import { userRoutes } from "./routes/userRoutes.js";
+
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
  
 // Connect to Databse
 connectDB();
@@ -26,9 +34,8 @@ app.use(session({
   }
 }));
 
-// make public folder accessible for public use
-app.use(express.static("public"));
 
+ 
 // ejs
 app.set('view engine', 'ejs');
 
@@ -38,6 +45,11 @@ app.use(express.urlencoded({ extended: true }));
 // Middleware - Parse incoming JSON
 app.use(express.json());
 
+// make public folder accessible for public use
+app.use(express.static("public"));
+
+// serve static uploads
+// app.use('/userprofile', express.static(path.join(__dirname, 'public/userprofile')));
 
 
 // get user session value
