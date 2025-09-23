@@ -3,6 +3,7 @@ import { hashedPassword, comparePassword } from '../utils/password.js';
 import { rollQuery } from "../utils/queryHelper.js";
 import { getPagination } from "../utils/pagination.js";
 import { validateUserInput } from '../utils/validation.js';
+import { renderList } from "../utils/renderHandler.js";
 
 import path from 'path';
 import fs from 'fs';
@@ -27,40 +28,52 @@ export const handleLogout = async (req, res) => {
 export const getAll = async (req, res) => {
   const query = rollQuery(req.session.user.role, false); 
   const { page, sortBy, order, limit, skip, sort } = getPagination(req);
- 
+  let totalPages = 1;
   try {
-    const totalCount = await userModels.countDocuments(query);
-    const totalPages = Math.ceil(totalCount / limit);
-    
-    const result = await userModels.find(query).collation({ locale: 'en', strength: 1 }).sort(sort).skip(skip).limit(limit);
+    let totalCount = await userModels.countDocuments(query);
+    totalPages = Math.ceil(totalCount / limit);
+    const result = await userModels.find(query)
+                  .collation({ locale: 'en', strength: 1 })
+                  .sort(sort)
+                  .skip(skip)
+                  .limit(limit);
     if (!result || result.length === 0) {
-      return res.status(409).render("userview/list", {
-        error: "No record found",
-        result: [],
-        currentPage: 1,
-        totalPages: 1,
-        sortBy,
-        order
+      return renderList({ 
+        res, 
+        status:409, 
+        view: 'list', 
+        error: "No record found", 
+        result:[], 
+        currentPage:page, 
+        totalPages, 
+        sortBy, 
+        order 
       });
     }
-    res.render("userview/list", {
-      error: null,
-      result,
-      currentPage: page,
-      totalPages,
-      sortBy,
-      order
-    });
+     return renderList({ 
+        res, 
+        status:200, 
+        view: 'list', 
+        error: null, 
+        result, 
+        currentPage:page, 
+        totalPages, 
+        sortBy, 
+        order 
+      });
+      
   } catch (error) {
-    console.error("Error fetching User:", error.message);
-    res.status(500).render("userview/list", {
-      error: "Internal Server Error",
-      result: [],
-      currentPage: 1,
-      totalPages: 1,
-      sortBy,
-      order
-    });
+    return renderList({ 
+        res, 
+        status:500, 
+        view: 'list', 
+        error: "Internal Server Error", 
+        result:[], 
+        currentPage:page, 
+        totalPages, 
+        sortBy, 
+        order 
+      });
   }
 };
 
@@ -69,39 +82,53 @@ export const getAll = async (req, res) => {
 export const getHided = async (req, res) => {
   const query = rollQuery(req.session.user.role, true); 
   const { page, sortBy, order, limit, skip, sort  } = getPagination(req);
+  let totalPages = 1;
   try {
     const totalCount = await userModels.countDocuments(query);
-    const totalPages = Math.ceil(totalCount / limit);
+    totalPages = Math.ceil(totalCount / limit);
     
-    const result = await userModels.find(query).collation({ locale: 'en', strength: 1 }).sort(sort).skip(skip).limit(limit);
+    const result = await userModels.find(query)
+                  .collation({ locale: 'en', strength: 1 })
+                  .sort(sort)
+                  .skip(skip)
+                  .limit(limit);
     if (!result || result.length === 0) {
-      return res.status(409).render("userview/list-hide", {
-        error: "No record found",
-        result: [],
-        currentPage: 1,
-        totalPages: 1,
-        sortBy,
-        order
+      return renderList({ 
+        res, 
+        status:409, 
+        view: 'list-hide', 
+        error: "No record found", 
+        result:[], 
+        currentPage:page, 
+        totalPages, 
+        sortBy, 
+        order 
       });
     }
-    res.render("userview/list-hide", {
-      error: null,
-      result,
-      currentPage: page,
-      totalPages,
-      sortBy,
-      order
-    });
+     return renderList({ 
+        res, 
+        status:200, 
+        view: 'list-hide', 
+        error: null, 
+        result, 
+        currentPage:page, 
+        totalPages, 
+        sortBy, 
+        order 
+      });
   } catch (error) {
-    console.error("Error fetching User:", error.message);
-    res.status(500).render("userview/list-hide", {
-      error: "Internal Server Error",
-      result: [],
-      currentPage: 1,
-      totalPages: 1,
-      sortBy,
-      order
-    });
+
+    return renderList({ 
+        res, 
+        status:500, 
+        view: 'list-hide', 
+        error: "Internal Server Error", 
+        result:[], 
+        currentPage:page, 
+        totalPages, 
+        sortBy, 
+        order 
+      });
   }
 };
 

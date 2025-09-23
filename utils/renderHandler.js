@@ -1,14 +1,11 @@
-export const renderUserList = ({ res, status,  view = 'list', error, result = [], page = 1, totalPages = 1, sortBy, order }) => {
-  res.render(`userview/${view}`, {
+export const renderList = ({ res, status,  view, error, result, currentPage, totalPages, sortBy, order }) => {
+  res.status(status).render(`userview/${view}`, {
     error,
     status,
     result,
-    currentPage: page,
+    currentPage,
     totalPages,
     sortBy,
     order
   });
 };
-
-
-// return renderUserList({ res, status, view: 'list-hide', error: "No record found", result, page, totalPages, sortBy, order });
