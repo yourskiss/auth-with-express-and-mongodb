@@ -19,10 +19,8 @@
       <a href="/users/?page=<%= querydata.page %>&sortBy=<%= querydata.sortBy %>&order=<%= querydata.order %>" class="btn btn-back">Back</a>
     <% }   %>
   </h4>
-
- 
-
-  <form class="formpart" action="/users/update/<%= id %>" method="post" enctype="multipart/form-data">
+  
+  <form class="formpart" action="/users/update/<%= result.id %>" method="post" enctype="multipart/form-data">
     <% if (error) { %>
       <aside class="errormessage"><%= error %></aside>
     <% } %>
@@ -81,7 +79,7 @@
             value="<%= result.email || '' %>"
         />
     </div>
-    <% if(user.id !== id) { %>
+    <% if(user.id !== result.id) { %>
     <div> 
         <label>Role:</label>
         <select name="role">

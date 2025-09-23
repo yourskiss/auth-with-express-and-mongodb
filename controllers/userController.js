@@ -1,6 +1,8 @@
-import mongoose from "mongoose";
 import userModels from "../models/userModels.js";
 import { hashedPassword, comparePassword } from '../utils/password.js';
+import { rollQuery } from "../utils/queryHelper.js";
+import { getPagination } from "../utils/pagination.js";
+import { validateUserInput } from '../utils/validation.js';
 
 import path from 'path';
 import fs from 'fs';
@@ -23,30 +25,14 @@ export const handleLogout = async (req, res) => {
 
  
 export const getAll = async (req, res) => {
-  const usersession = req.session.user;
-  const page = parseInt(req.query.page) || 1; // current page number
-  const limit = process.env.RECORD_LIMIT; 
-  const skip = (page - 1) * limit;
-  
-  const sortBy = req.query.sortBy || 'createdAt'; // default field
-  const order = req.query.order === 'desc' ? -1 : 1; // default A-Z
-  const sortOptions = {};
-  sortOptions[sortBy] = order;
-
-  let query = {};
-  if (usersession.role === 'admin') {
-    query = { role: { $nin: ['superadmin', 'admin'] } };
-  }
-  if (usersession.role === 'superadmin') {
-    query = { role: { $nin: ['superadmin', 'user'] } };
-  }
-  query.isDeleted = false; 
-
+  const query = rollQuery(req.session.user.role, false); 
+  const { page, sortBy, order, limit, skip, sort } = getPagination(req);
+ 
   try {
     const totalCount = await userModels.countDocuments(query);
     const totalPages = Math.ceil(totalCount / limit);
     
-    const result = await userModels.find(query).collation({ locale: 'en', strength: 1 }).sort(sortOptions).skip(skip).limit(limit);
+    const result = await userModels.find(query).collation({ locale: 'en', strength: 1 }).sort(sort).skip(skip).limit(limit);
     if (!result || result.length === 0) {
       return res.status(409).render("userview/list", {
         error: "No record found",
@@ -81,30 +67,13 @@ export const getAll = async (req, res) => {
 
  
 export const getHided = async (req, res) => {
-  const usersession = req.session.user;
-  const page = parseInt(req.query.page) || 1; // current page number
-  const limit = process.env.RECORD_LIMIT; 
-  const skip = (page - 1) * limit;
-  
-  const sortBy = req.query.sortBy || 'createdAt'; // default field
-  const order = req.query.order === 'desc' ? -1 : 1; // default A-Z
-  const sortOptions = {};
-  sortOptions[sortBy] = order;
-
-  let query = {};
-  if (usersession.role === 'admin') {
-    query = { role: { $nin: ['superadmin', 'admin'] } };
-  }
-  if (usersession.role === 'superadmin') {
-    query = { role: { $nin: ['superadmin', 'user'] } };
-  }
-  query.isDeleted = true; 
-
+  const query = rollQuery(req.session.user.role, true); 
+  const { page, sortBy, order, limit, skip, sort  } = getPagination(req);
   try {
     const totalCount = await userModels.countDocuments(query);
     const totalPages = Math.ceil(totalCount / limit);
     
-    const result = await userModels.find(query).collation({ locale: 'en', strength: 1 }).sort(sortOptions).skip(skip).limit(limit);
+    const result = await userModels.find(query).collation({ locale: 'en', strength: 1 }).sort(sort).skip(skip).limit(limit);
     if (!result || result.length === 0) {
       return res.status(409).render("userview/list-hide", {
         error: "No record found",
@@ -141,13 +110,6 @@ export const getById = async (req, res) => {
   const { id } = req.params;
   const { page, sortBy, order } = req.query;
   const querydata = `?page=${page}&sortBy=${sortBy}&order=${order}`;
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).render('userview/detail', { 
-        error: 'Invalid User id', 
-        result: '', 
-        querydata 
-    });
-  }
   try {
     const result = await userModels.findById(id);
     if (!result) {
@@ -183,35 +145,12 @@ export const renderAdd = async (req, res) => {
 }
 export const handleAdd = async (req, res) => {
   const { fullname, mobile, email, password, role } = req.body;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const mobileRegex = /^[6-9]\d{9}$/;
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
   const data = {fullname, mobile, email, password, role}
-  if (!fullname || !mobile || !email || !password || !role) {
-    return res.status(401).render('userview/create', {
-          success:null,
-          error: 'All fields are required.',
-          data
-        });
-  }
-  if (!mobileRegex.test(mobile)) {
-    return res.status(401).render('userview/create', {
-          success:null,
-          error: 'Mobile number must be exactly 10 digits.',
-          data
-        });
-  }
-  if (!emailRegex.test(email)) {
-    return res.status(401).render('userview/create', {
-          success:null,
-          error: 'Email format is invalid.',
-          data
-        });
-  }
-  if (!passwordRegex.test(password)) {
-    return res.status(401).render('userview/create', {
-      success:null,
-      error: 'Password must be at least 6 characters long and include uppercase, lowercase, number, and special character.',
+  const errorMsg = validateUserInput({ fullname, mobile, email, password, role });
+  if (errorMsg.length > 0) {
+    return res.status(400).render('userview/create', {
+      success:null, 
+      error:errorMsg.join(" "),
       data
     });
   }
@@ -249,23 +188,13 @@ export const renderUpdate = async (req, res) => {
   const { id } = req.params;
   const { page, sortBy, order } = req.query;
   const qd = { page, sortBy, order };
-  const datablank = { fullname:'', email:'', mobile:'', role:'' };
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).render("userview/update", { 
-      success: null, 
-      error: 'Invalid User id', 
-      id, 
-      result: datablank, 
-      querydata: qd
-    });
-  }
+  const datablank = { id, fullname:'', email:'', mobile:'', role:'' };
   try {
     const result = await userModels.findById(id);
     if (!result) {
       return res.status(404).render("userview/update", { 
         success: null, 
         error: 'Record not found', 
-        id, 
         result: datablank, 
         querydata: qd
       });
@@ -273,7 +202,6 @@ export const renderUpdate = async (req, res) => {
     return res.status(200).render("userview/update", { 
       success: null, 
       error: null, 
-      id, 
       result: result, 
       querydata: qd
     });
@@ -282,59 +210,31 @@ export const renderUpdate = async (req, res) => {
     return res.status(500).render("userview/update", { 
       success: null, 
       error: 'Internal Server Error', 
-      id, 
       result: datablank, 
       querydata: qd
     });
   }
 };
 export const handleUpdate = async (req, res) => {
-const { page, sortBy, order, fullname, email, mobile, role } = req.body;
+const { page, sortBy, order, fullname, email, mobile, password, role } = req.body;
   const { id } = req.params;
-  const data = { fullname, email, mobile, role };
+  const data = {  id, fullname, email, mobile, role };
   const qd = { page, sortBy, order }
 
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).render("userview/update", {
-      success: null,
-      error: 'Invalid User id',
-      id,
-      result: { fullname:'', email:'', mobile:'', role:'' },
-      querydata: qd
-    });
+  let errorMsg = null;
+  if(req.session.user.id === id) {
+    errorMsg = validateUserInput({ fullname, mobile, email });
+  } else {
+    errorMsg = validateUserInput({ fullname, mobile, email, role });
   }
-
-  const mobileRegex = /^[6-9]\d{9}$/;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!fullname || !email || !mobile) {
-    return res.status(400).render("userview/update", { 
+  if (errorMsg.length > 0) {
+    return res.status(400).render('userview/update', {
       success:null, 
-      error: 'All fields are required', 
-      id, 
+      error:errorMsg.join(" "),
       result:data, 
       querydata:qd
     });
   }
-  if (!mobileRegex.test(mobile)) {
-    return res.status(400).render("userview/update", { 
-      success:null, 
-      error: 'Invalid mobile number', 
-      id, 
-      result:data, 
-      querydata:qd
-    });
-  }
-  if (!emailRegex.test(email)) {
-    return res.status(400).render("userview/update", { 
-      success:null, 
-      error: 'Invalid email format', 
-      id, 
-      result:data, 
-      querydata:qd 
-    });
-  }
-
 
   try {
     const user = await userModels.findById(id);
@@ -342,14 +242,11 @@ const { page, sortBy, order, fullname, email, mobile, role } = req.body;
       return res.status(404).render("userview/update", {
         success: null,
         error: 'Record not found',
-        id,
         result: { fullname:'', email:'', mobile:'', role:'' },
         querydata: qd
       });
     }
-
     const updateData = { fullname, email, mobile, role, updatedBy:req.session.user.id, updatedAt: new Date(), otpTemp:null, otpExpiry:null };
-
     if (req.file) {
       // Delete old photo file if it exists
       if (user.profilepicture && user.profilepicture.filename) {
@@ -373,7 +270,6 @@ const { page, sortBy, order, fullname, email, mobile, role } = req.body;
       return res.status(409).render("userview/update", { 
         success:null, 
         error: 'Record not Updated', 
-        id, 
         result:data, 
         querydata:qd 
       });
@@ -381,7 +277,6 @@ const { page, sortBy, order, fullname, email, mobile, role } = req.body;
     return res.status(200).render("userview/update", {
       success: 'Profile updated successfully.',
       error: null,
-      id,
       result: updatedUser,
       querydata: qd
     });
@@ -390,7 +285,6 @@ const { page, sortBy, order, fullname, email, mobile, role } = req.body;
     return res.status(500).render("userview/update", {
       success: null,
       error: 'Internal Server Error',
-      id,
       result: { fullname:'', email:'', mobile:'', role:'' },
       querydata: qd
     });
@@ -400,14 +294,8 @@ const { page, sortBy, order, fullname, email, mobile, role } = req.body;
 
 
 export const handleDisabled = async (req, res) => {
- // console.log("user session- ",req.session.user)
   let { id } = req.params;
-  let { page, sortBy, order } = req.query;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(404).json({ message: 'Invalid User ID' });
-  }
-
+  const { page, sortBy, order, limit, skip, sort } = getPagination(req);
   try {
     // Soft delete instead of actual delete
     const deleted = await userModels.findByIdAndUpdate(
@@ -420,12 +308,11 @@ export const handleDisabled = async (req, res) => {
     }
 
     // After soft-deleting, redirect or respond as before
-    let limit = process.env.RECORD_LIMIT;
     let remainingCount = await userModels.countDocuments({ isDeleted: false });
     let totalPages = Math.ceil(remainingCount / limit);
-
     if (page > totalPages && totalPages > 0) { page = totalPages; }
     if (totalPages === 0) { page = 1; }
+
     let redirectQuery = `?page=${page}&sortBy=${sortBy}&order=${order}`;
     res.redirect(`/users/${redirectQuery}`);
     console.log("User soft-deleted:", deleted);
@@ -436,13 +323,8 @@ export const handleDisabled = async (req, res) => {
 };
 
 export const handleEnabled = async (req, res) => {
-// console.log("user session- ",req.session.user)
-  let { id } = req.params;
-  let { page, sortBy, order } = req.query;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(404).json({ message: 'Invalid User ID' });
-  }
+let { id } = req.params;
+const { page,  sortBy, order, limit, skip, sort } = getPagination(req);
 
   try {
     // Soft delete instead of actual delete
@@ -456,12 +338,11 @@ export const handleEnabled = async (req, res) => {
     }
 
     // After soft-deleting, redirect or respond as before
-    let limit = process.env.RECORD_LIMIT;
-    let remainingCount = await userModels.countDocuments({ isDeleted: false });
+    let remainingCount = await userModels.countDocuments({ isDeleted: true });
     let totalPages = Math.ceil(remainingCount / limit);
-
     if (page > totalPages && totalPages > 0) { page = totalPages; }
     if (totalPages === 0) { page = 1; }
+
     let redirectQuery = `?page=${page}&sortBy=${sortBy}&order=${order}`;
     res.redirect(`/users/hide/${redirectQuery}`);
     console.log("User soft-deleted:", deleted);
@@ -473,23 +354,20 @@ export const handleEnabled = async (req, res) => {
  
 export const handleDelete = async (req, res) => {
   const { id } = req.params;
-  let page = parseInt(req.body.page) || 1;  
-  let sortBy = req.body.sortBy || 'createdAt';
-  let order = req.body.order || 'asc';
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(404).json({ message: 'Invalid User ID' });
-  }
+  const { page, sortBy, order, limit, skip, sort } = getPagination(req);
+
   try {
     const deleted = await userModels.findByIdAndDelete(id);
     if (!deleted) {
       return res.status(404).send("Record not deleted");
     }
-
-    const limit = process.env.RECORD_LIMIT;  
+ 
     const remainingCount = await userModels.countDocuments();
     const totalPages = Math.ceil(remainingCount / limit);
     if (page > totalPages && totalPages > 0) { page = totalPages;}
     if (totalPages === 0) { page = 1;}
+
+
     const redirectQuery = `?page=${page}&sortBy=${sortBy}&order=${order}`;
     res.redirect(`/users/hide/${redirectQuery}`);
     console.log("User deleted:", deleted);
@@ -504,88 +382,71 @@ export const handleDelete = async (req, res) => {
 export const renderChangePassword = (req, res) => {
   const data = { oldpassword:'', newpassword:'', confirmpassword:'' }
   res.status(200).render('userview/password-change', { 
-    userSession: req.session.user, 
+    success:null,
     error:null, 
-    data, 
-    success:null 
+    data
   });
 };
 
-export const handleChangePassword = async (req, res) => {
-  const { oldpassword, newpassword, confirmpassword } = req.body;
-  const data = { oldpassword, newpassword, confirmpassword }
-  const datablank = { oldpassword:'', newpassword:'', confirmpassword:'' }
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
-  const userSession = req.session.user
-  if (!oldpassword || !newpassword || !confirmpassword) {
-    return res.status(400).render('userview/password-change', { 
-      userSession, 
-      error:'All fields are required.', 
-      data, 
-      success:null 
+  export const handleChangePassword = async (req, res) => {
+  const { oldpassword, password, confirmpassword } = req.body;
+  const data = { oldpassword, password, confirmpassword }
+  const userSessionID = req.session.user.id;
+ 
+  if (!userSessionID) {
+    return res.status(401).render('userview/password-change', {
+      success: null,
+      error: "Unauthorized access.",
+      data
     });
   }
-  if (!passwordRegex.test(oldpassword)) {
-    return res.status(400).render('userview/password-change', { 
-      userSession, 
-      error:'Old Password must be at least 6 characters long and include uppercase, lowercase, number, and special character.', 
-      data, 
-      success:null 
+  const errorMsg = validateUserInput({ oldpassword, password, confirmpassword  });
+  if (errorMsg.length > 0) {
+    return res.status(400).render('userview/password-change', {
+      success:null, 
+      error:errorMsg.join(", "),
+      data,
     });
   }
-  if (!passwordRegex.test(newpassword)) {
-    return res.status(400).render('userview/password-change', { 
-      userSession, 
-      error:'New Password must be at least 6 characters long and include uppercase, lowercase, number, and special character.', 
-      data, 
-      success:null 
-    });
-  }
-  if (newpassword !== confirmpassword) {
-    return res.status(400).render('userview/password-change', { 
-      userSession, 
-      error:'New password and confirm password do not match.', 
-      data, 
-      success:null 
-    });
-  }
-
+   
   try {
-    
-    const user = await userModels.findById(userSession.id);
-    if (!user) {
-      return res.status(409).render('userview/password-change', { 
-        userSession, 
+    const result = await userModels.findById(userSessionID);
+    if (!result) {
+      return res.status(409).render('userview/password-change', {  
+        success:null,
         error:'Record not found.', 
-        data:datablank, 
-        success:null 
+        data
       });
     }
-    const isMatch = comparePassword(oldpassword, user.password);
+    const isMatch = await comparePassword(oldpassword, result.password);
     if (!isMatch) {
       return res.status(409).render('userview/password-change', { 
-        userSession, 
+        success:null,
         error:'Old password is incorrect.', 
-        data:datablank, 
-        success:null 
+        data
       });
     }
-    user.password = await hashedPassword(newpassword);
-    const result = await user.save();
-     console.log("New User created: ", result);
+    result.password = await hashedPassword(password);
+    const saved = await result.save();
+    if(!saved) {
+      res.status(200).render('userview/password-change', {
+        success: 'Password Not changed.',
+        error:null,
+        data
+      });
+    }
     res.status(200).render('userview/password-change', {
-      userSession,
+      success: 'Password changed successfully.',
       error:null,
-      data: datablank,
-      success: 'Password changed successfully.'
+      data
     });
+  
   } catch (err) {
     console.error('Password change error:', err);
-    res.status(500).render('userview/password-change', { 
-      userSession, 
+    res.status(500).render('userview/password-change', {  
+      success:null,
       error:'Internal server error.', 
-      data, 
-      success:null 
+      data
     });
   }
 

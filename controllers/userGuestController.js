@@ -2,6 +2,7 @@ import { sendOtpEmail } from '../utils/sendOTP.js';
 import userModels from "../models/userModels.js";
 import { hashedPassword, comparePassword } from '../utils/password.js';
 import otpGenrater from '../utils/genrateOTP.js';
+import { validateUserInput } from '../utils/validation.js';
  
 export const renderRegister = async (req, res) => {
   const data = {fullname: '', mobile: '', email: '', password: '', confirmpassword: '' }
@@ -13,55 +14,21 @@ export const renderRegister = async (req, res) => {
 }
  
 export const handleRegister = async (req, res) => {
- const { otpTemp, otpExpiry, otpTime } = otpGenrater();
-console.log("Register - ", otpTemp, " - ", otpExpiry, " - ", otpTime);
-
-const { fullname, mobile, email, password, confirmpassword } = req.body;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const mobileRegex = /^[6-9]\d{9}$/;
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;  
+  const { otpTemp, otpExpiry, otpTime } = otpGenrater();
+  const { fullname, mobile, email, password, confirmpassword } = req.body;
   const data = { fullname, mobile, email, password, confirmpassword }
-
-  
-
-  if (!fullname || !mobile || !email || !password || !confirmpassword) {
-    return res.status(401).render('userview/register', {
-          success:null,
-          error: 'All fields are required.',
-          data
-        });
-  }
-  if (!mobileRegex.test(mobile)) {
-    return res.status(401).render('userview/register', {
-          success:null,
-          error: 'Mobile number must be exactly 10 digits.',
-          data
-        });
-  }
-  if (!emailRegex.test(email)) {
-    return res.status(401).render('userview/register', {
-          success:null,
-          error: 'Email format is invalid.',
-          data
-        });
-  } 
-  if (!passwordRegex.test(password)) {
-    return res.status(401).render('userview/register', {
-      success:null,
-      error: 'Password must be at least 6 characters, include uppercase, lowercase, number, and special character.',
-      data
+  const errorMsg = validateUserInput({ fullname:fullname, mobile:mobile, email:email, password:password, confirmpassword:confirmpassword });
+  if (errorMsg.length > 0) {
+    return res.status(400).render('userview/register', {
+      success:null, 
+      error:errorMsg.join(", "),
+      data,
     });
   }
-  if (password !== confirmpassword) {
-    return res.status(400).render('userview/register', { 
-      success:null,
-      error:'Password and confirm password do not match.', 
-      data
-    });
-  }
+
   // Check if user already exists
-    const existingUser = await userModels.findOne({ $or: [{ email }, { mobile }] });
-      if (existingUser) {
+  const existingUser = await userModels.findOne({ $or: [{ email }, { mobile }] });
+  if (existingUser) {
           const errorMsg = existingUser.email === email
           ? 'Email ID already registered. Register with another Email ID'
           : 'Mobile Number already registered. Try with another Mobile Number';
@@ -70,7 +37,7 @@ const { fullname, mobile, email, password, confirmpassword } = req.body;
           error: errorMsg,
           data
         });
-    }
+  }
 
   try { 
     // ✅ Send OTP email
@@ -113,15 +80,15 @@ export const renderVerifyRegister = async (req, res) => {
       success:null, 
       info:'Session Expire. Please resubmit',
       error: null, 
-      email: ''
+      data: ''
     });
   }
-  const { email } = req.session.tempUser;
+  const data = req.session.tempUser;
   res.status(200).render('userview/register-verify', { 
       success:null, 
       info:null,
       error: null, 
-      email: email
+      data
     });
 }
  
@@ -131,26 +98,27 @@ export const handleVerifyRegister = async (req, res) => {
       success:null, 
       info:'Session Expire. Please resubmit',
       error: null, 
-      email: ''
+      data: ''
     });
   } 
  const { fullname, mobile, email, password, otpTemp, otpExpiry } = req.session.tempUser;
+const data = req.session.tempUser;
  const { otp } = req.body;
- 
-  if (!otp || otp.length !== 6) {
-      return res.status(400).render('userview/register-verify', {
-        success: null,
-        info:null,
-        error: 'Enter 6 Digit OTP',
-        email
-      });
+ const errorMsg = validateUserInput({ otp: otp });
+  if (errorMsg.length > 0) {
+    return res.status(400).render('userview/register-verify', {
+      success:null, 
+      info:null,
+      error:errorMsg.join(" "),
+      data
+    });
   }
   if (new Date(otpExpiry) < new Date()) {
       return res.status(400).render('userview/register-verify', {
         success: null,
         info:null,
         error: 'OTP has expired',
-        email
+        data
       });
   }
   if (otpTemp !== otp) {
@@ -158,7 +126,7 @@ export const handleVerifyRegister = async (req, res) => {
         success: null,
         info:null,
         error: 'Invalid OTP',
-        email
+        data
       });
   }
  try { 
@@ -171,18 +139,18 @@ export const handleVerifyRegister = async (req, res) => {
         success: null,
         info:null,
         error: 'Error in Registation',
-        email
+        data
       });
     }
-    //console.log("New User register: ", result);
-   // console.log("before clear tempUser: ", req.session.tempUser);
-    req.session.tempUser = null; // temp data session clear
-    console.log("after clear tempUser: ", req.session.tempUser);
+
+    // temp data session clear
+    req.session.tempUser = null; 
+
     res.status(200).render('userview/register-verify', {
           success:'OTP verified. Registation successfully.',
           info:null,
           error: null,
-          email
+          data:''
         });
   } catch (err) {
     console.error('OTP verification error:', err);
@@ -190,53 +158,39 @@ export const handleVerifyRegister = async (req, res) => {
       success: null,
       info:null,
       error: 'Internal server error',
-      email
+      data
     });
   }
 };
 
 
 export const renderLogin = async (req, res) => {
+  const data = { email:'', password:'' }
   res.render('userview/login', { 
     success:null, 
     error: null, 
-    email: '' 
+    data
   });
 }
  
 export const handleLogin = async (req, res) => {
   const { email, password } = req.body;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
-  if (!email || !password) {
-      return res.status(401).render('userview/login', {
-            success:null, 
-            error: 'Email and Password are required.',
-            email: email
-          });
-    }
-    if (!emailRegex.test(email)) {
-      return res.status(401).render('userview/login', {
-            success:null, 
-            error: 'Enter valid Email ID',
-            email: email
-          });
-    }
-    if (!passwordRegex.test(password)) {
-      return res.status(401).render('userview/login', {
-        success:null, 
-        error: 'Password must be at least 6 characters long and include uppercase, lowercase, number, and special character.',
-        email: email
-      });
-    }
-
+  const data = { email, password }
+  const errorMsg = validateUserInput({ email: email, password:password });
+  if (errorMsg.length > 0) {
+    return res.status(400).render('userview/login', {
+      success: null,
+      error: errorMsg.join(" "),
+      data
+    });
+  }
   try {
     const result = await userModels.findOne({ email });
     if (!result) {
       return res.status(409).render('userview/login', {
           success:null, 
           error: 'Invalid email id',
-          email: email
+          data
         });
     }
     const isMatch = await comparePassword(password, result.password); 
@@ -244,7 +198,7 @@ export const handleLogin = async (req, res) => {
       return res.status(409).render('userview/login', {
           success:null, 
           error: 'Invalid password',
-          email: email
+          data
         });
     }
     req.session.user = {
@@ -259,14 +213,14 @@ export const handleLogin = async (req, res) => {
         res.status(501).render('userview/login', {
             success:null, 
             error: 'Session error',
-            email: email
+            data
         });
       }
       console.log("session id - ", req.session.user);
       return res.status(200).render('userview/login', {
           success:'Login successful.', 
           error: null,
-          email: email
+          data
       });
     });
   } catch (err) {
@@ -274,7 +228,7 @@ export const handleLogin = async (req, res) => {
     res.status(500).render('userview/login', {
         success:null, 
         error: 'Internal Server Error',
-        email: email
+        data
     });
   }
 };
@@ -290,21 +244,13 @@ export const renderPasswordForget = (req, res) => {
 };  
 export const handlePasswordForget = async (req, res) => {
   const { otpTemp, otpExpiry, otpTime } = otpGenrater();
-  console.log("Password Forget - ", otpTemp, " - ", otpExpiry, " - ", otpTime);
   const { email } = req.body;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email) {
-    return res.status(400).render("userview/password-forget", {
-      success: null,
-      error: 'Email is required',
-      email
-    });
-  }
-  if (!emailRegex.test(email)) {
-    return res.status(400).render("userview/password-forget", {
-      success: null,
-      error: 'Invalid email format',
-      email
+  const errorMsg = validateUserInput({ email: email });
+  if (errorMsg.length > 0) {
+    return res.status(400).render('userview/password-forget', {
+      error: errorMsg.join(" "),
+      email,
+      success: null
     });
   }
   try {
@@ -312,9 +258,9 @@ export const handlePasswordForget = async (req, res) => {
     const checkuserbyemail = await userModels.findOne({ email });
     if (!checkuserbyemail) {
       return res.status(409).render('userview/password-forget', {
-        success: null,
         error: 'Email not found',
-        email
+        email,
+        success: null
       });
     }
 
@@ -368,9 +314,19 @@ export const renderPasswordOtp  = (req, res) => {
   });
 }; 
 
+
 export const handlePasswordOtp = async (req, res) => {
   const { otp } = req.body;
   const email = req.session.fpStep1;
+  const errorMsg = validateUserInput({ otp: otp });
+  if (errorMsg.length > 0) {
+    return res.status(400).render('userview/password-otp', {
+      success:null, 
+      info:null,
+      error:errorMsg.join(" "),
+      email
+    });
+  }
   try {
     const user = await userModels.findOne({ email });
     if (!user || user.otpTemp !== otp) {
@@ -419,14 +375,13 @@ export const handlePasswordOtp = async (req, res) => {
 export const renderPasswordReset = (req, res) => {
   const email = req.session.fpStep1;
   const expiretime = req.session.fpStep2;
+  const data = { email, password:'', confirmpassword:'' }
   if (!email && !expiretime) {
     return  res.status(400).render('userview/password-reset', {
       success: null,
       info:'Verify your email and OTP first.',
       error: null,
-      email,
-      password:'',
-      confirmPassword:''
+      data
     });
   }
   if (email && !expiretime) {
@@ -434,56 +389,30 @@ export const renderPasswordReset = (req, res) => {
       success: null,
       info:'Please verify OTP first.',
       error: null,
-      email,
-      password:'',
-      confirmPassword:''
+      data
     });
   }
   res.status(200).render('userview/password-reset', { 
     success:null, 
     info:null,
     error:null,
-    email,
-    password:'',
-    confirmPassword:''
+    data
   });
 }; 
 
 export const handlePasswordReset = async (req, res) => {
-  const { password, confirmPassword } = req.body;
   const email = req.session.fpStep1;
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
-  if (!password || !confirmPassword) {
+  const { password, confirmpassword } = req.body;
+  const data = { email, password, confirmpassword }
+  const errorMsg = validateUserInput({ password: password, confirmpassword:confirmpassword });
+  if (errorMsg.length > 0) {
     return res.status(400).render('userview/password-reset', {
-      success: null,
+      success:null, 
       info:null,
-      error: 'Passwords do not match or are empty',
-      email,
-      password,
-      confirmPassword
+      error:errorMsg.join(" "),
+      data
     });
   }
-  if (!passwordRegex.test(password)) {
-    return res.status(400).render('userview/password-reset', { 
-      error:'Password must be at least 6 characters long and include uppercase, lowercase, number, and special character.', 
-      info:null,
-      success:null,
-      email,
-      password,
-      confirmPassword
-    });
-  }
-  if (password !== confirmPassword) {
-    return res.status(400).render('userview/password-reset', { 
-      success:null,
-      info:null,
-      error:'New password and confirm password do not match.', 
-      email,
-      password,
-      confirmPassword
-    });
-  }
-
   try {
     // check if Entered password is different from Previous password
     const getByEmail = await userModels.findOne({ email });
@@ -493,9 +422,7 @@ export const handlePasswordReset = async (req, res) => {
         success: null,
         info: null,
         error: 'Entered password and Previous password is same. Please enter different password',
-        email,
-        password:'',
-        confirmPassword:''
+        data
       });
     }
  
@@ -508,12 +435,10 @@ export const handlePasswordReset = async (req, res) => {
 
     if (!user) {
       return res.status(400).render('userview/password-reset', {
-        email,
         success: null,
         info:null,
         error: 'Record not found',
-        password,
-        confirmPassword
+        data
       });
     }
 
@@ -528,20 +453,16 @@ export const handlePasswordReset = async (req, res) => {
       success: 'Password reset successfully! You can now log in.',
       info:null,
       error: null,
-      email,
-      password,
-      confirmPassword
+      data
     });
 
   } catch (err) {
     console.error('Reset password error:', err);
     res.status(500).render('userview/password-reset', {
-      email,
       success: null,
       info:null,
       error: 'Internal server error',
-      password,
-      confirmPassword
+      data
     });
   }
 };

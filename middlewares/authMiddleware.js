@@ -1,3 +1,4 @@
+
 export const isGuest = (req, res, next) => {
   if (req.session && req.session.user) {
     return res.redirect('/users/dashboard');
@@ -22,3 +23,5 @@ export const checkRole = (allowedRoles) => {
     next();
   };
 };
+
+

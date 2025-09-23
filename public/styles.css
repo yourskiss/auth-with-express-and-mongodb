@@ -22,10 +22,21 @@ body { font-family: Arial, Helvetica, sans-serif; }
 .mainError {text-align: center; color: #ec0808; font-size: 16px; width: 100%; }
 .backto { text-align: left; color: blueviolet; font-size: 16px; width: 100%; margin-bottom: 20px; }
  
-.sortcontrols {text-align: right; margin:10px 0 30px 0; font-size: 16px; width: 100%; }
-.sortcontrols b { color: #000; }
-.sortcontrols a { text-decoration: none; color: #999999; }
-.sortcontrols a.active { color: #ec0808; }
+.sortcontrols {text-align: right; margin:10px 0 20px 0; font-size: 16px; width: 100%;  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.sortcontrols h5 {width:50%;  padding:0px 0px 20px 0px; text-align: left; color: #7c7b7b; font-size:16px;  }
+.sortcontrols h5 a { text-decoration: underline;color: #ec0808; }
+.sortcontrols h5 a:hover {  text-decoration: none;  color: #000000; }
+.sortcontrols p { width:50%;   text-align: right; color: #7c7b7b; font-size:16px;   }
+.sortcontrols p b { color: #000; }
+.sortcontrols p a { text-decoration: none; color: #999999; }
+.sortcontrols p a.active { color: #ec0808; }
+
+.record_list { border: 1px solid; padding:10px 20px; margin-bottom: 10px; width: 100%; display: flex; justify-content:flex-start; align-items: center; gap:20px; }
+.record_list.disabled { background: #ddd; border-color: #999; }
+.record_list.enabled { background: #fff; border-color: #ccc;  }
+.record_list img { width: 100px; border: 1px solid #ddd; padding: 5px; }
+.record_list p {  text-align: left; color: #7c7b7b; font-size:16px;   }
+.record_list aside { width:auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; align-items:flex-start; }
 
 .pagingcontrols {text-align: center; margin:30px 0 10px 0;  font-size: 16px; width: 100%; }
 .pagingcontrols b, .pagingcontrols a { width:auto; padding: 5px 10px; text-align: center; margin: 0 3px; }

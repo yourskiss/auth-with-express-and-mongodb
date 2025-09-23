@@ -32,10 +32,17 @@ const tblSchema = new mongoose.Schema(
  // { timestamps: true }
 );
 
-const collection_name = process.env.COL_USERS;
-if (!collection_name) {
-  throw new Error('❌ Models : Missing collection name in environment variables.');
-}
+// const collection_name = process.env.COL_USERS;
+// if (!collection_name) {
+//   throw new Error('❌ Models : Missing collection name in environment variables.');
+// }
+
+const collection_name = process.env.COL_USERS ?? (() => 
+  { 
+    throw new Error('❌ Missing collection name in environment variables.') 
+  })();
+
+ 
 
 const userModels = mongoose.model(
   'userlist', 

@@ -11,38 +11,39 @@
   <h1 class="mainheading">
     <% if (user.role === 'superadmin') { %>Admin List<% } else {  %>User List <% } %>
   </h1>
-  <p class="maintext">
-    Disabled <% if (user.role === 'superadmin') { %>Admin<% } else {  %>User<% } %> List <a href="/users/hide">Click Here</a>
-  </p>
+ 
  
   <% if (error) { %>
       <h6 class="mainError"><%= error %></h6>
   <% }   %>
 
 <div class="sortcontrols">
+  <h5>
+    Disabled <% if (user.role === 'superadmin') { %>Admin<% } else {  %>User<% } %> List <a href="/users/hide">Click Here</a>
+  </h5>
   <% 
     const primary = sortBy === 'createdAt';
     const secondary = sortBy === 'fullname'; 
   %>
   <p>
     <b>Sort : &nbsp;</b>
-    <a href="?sortBy=fullname&order=<%= secondary && order === 1 ? 'desc' : 'asc' %>" class="<%= secondary ? 'active' : '' %>">
+    <a href="?page=1&sortBy=fullname&order=<%= secondary && order === 1 ? 'desc' : 'asc' %>" class="<%= secondary ? 'active' : '' %>">
      By Name <%= secondary ? (order === 1 ? '▲' : '▼') : ' ' %>
     </a>
      &nbsp; 
-    <a href="?sortBy=createdAt&order=<%= primary && order === 1 ? 'desc' : 'asc' %>" class="<%= primary ? 'active' : '' %>">
-      By Date<%= primary ? (order === 1 ? '▲' : '▼') : ' ' %>
+    <a href="?page=1&sortBy=createdAt&order=<%= primary && order === 1 ? 'desc' : 'asc' %>" class="<%= primary ? 'active' : '' %>">
+      Created By <%= primary ? (order === 1 ? '▲' : '▼') : ' ' %>
     </a>
      &nbsp; 
   </p>
 </div>
 
     <% result.forEach((res) => { %>
-        <div style="border: 1px solid #ccc; padding:5px 10px ; margin-bottom: 10px; width: 100%; display: flex; justify-content: space-between;">
+        <div class="record_list enabled" >
             <% if (res.profilepicture && res.profilepicture.url) { %>
-                <img src="<%= res.profilepicture.url %>" alt="Profile Photo" width="100px" />
+                <img src="<%= res.profilepicture.url %>" alt="Profile Photo" />
             <% } %>
-            <p style="width: 300px;">
+            <p>
                 <strong>Full Name:</strong> <%= res.fullname %> || <strong>Role:</strong> <%= res.role %><br> 
                 <strong>Mobile:</strong> <%= res.mobile %> || <strong>Email:</strong> <%= res.email %><br>
                 <strong>Created At:</strong> <%= new Date(res.createdAt).toLocaleString() %><br>
@@ -52,13 +53,12 @@
                 if (createdDate.getTime() < updatedDate.getTime()) { %>
                   <strong>Updated At:</strong> <%= new Date(res.updatedAt).toLocaleString() %><br>
                 <% } %>
-                
             </p>
-            <div style="width:auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; align-items:flex-start;">
+            <aside>
                 <a href="/users/detail/<%= res.id %>?page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn">View </a>  
                 <a href="/users/update/<%= res.id %>?page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn">Update </a>  
                 <a href="/users/disabled/<%= res.id %>?page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn btn-disabled" onclick="return confirm('Are you sure you want to disabled this ?')">Disabled</a>   
-            </div>
+            </aside>
         </div>
     <% }) %>
 

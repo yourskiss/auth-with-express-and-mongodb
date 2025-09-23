@@ -9,7 +9,7 @@
 <section class="sectionmin">
   <h1 class="mainheading">Verify OTP</h1>
   <p class="maintext">
-    Please enter the 6 Digit OTP sent to your email : <strong><%= email || '' %></strong> 
+    Please enter the 6 Digit OTP sent to your email : <strong><%= data.email || '' %></strong> 
   </p>
   <form class="formpart" action="/users/verify-registation" method="post">
     <% if (error) { %>
