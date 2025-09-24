@@ -21,7 +21,7 @@
   </h4>
   
   <form class="formpart" action="/users/update/<%= result.id %>" method="post" enctype="multipart/form-data">
-    <% if (error) { %>
+    <% if (error && typeof error === 'string') { %>
       <aside class="errormessage"><%= error %></aside>
     <% } %>
     <% if (success) { %>
@@ -61,6 +61,9 @@
             name="fullname" 
              value="<%= result.fullname || '' %>"
         />
+        <% if (error && error.fullname) { %>
+          <span class="error"><%= error.fullname %></span>
+        <% } %>
     </div>
     <div>
         <label>Mobile:</label>
@@ -70,6 +73,9 @@
             value="<%= result.mobile || '' %>"
             maxlength="10"
         />
+        <% if (error && error.mobile) { %>
+          <span class="error"><%= error.mobile %></span>
+        <% } %>
     </div>
     <div>
         <label>Email:</label>
@@ -78,6 +84,9 @@
             name="email" 
             value="<%= result.email || '' %>"
         />
+        <% if (error && error.email) { %>
+          <span class="error"><%= error.email %></span>
+        <% } %>
     </div>
     <% if(user.id !== result.id) { %>
     <div> 
@@ -88,6 +97,9 @@
           <% if(user.role === 'superadmin') { %> <option value="admin" <%= result.role === 'admin' ? 'selected' : '' %> >Admin</option> <% } %>
           <!-- <option value="superadmin" <%= result.role === 'superadmin' ? 'selected' : '' %>>Superadmin</option> -->
         </select>
+        <% if (error && error.role) { %>
+          <span class="error"><%= error.role %></span>
+        <% } %>
     </div>
     <% } %>
     <div>

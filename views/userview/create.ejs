@@ -17,7 +17,7 @@
   </p>
   
   <form class="formpart" action="/users/create" method="post">
-    <% if (error) { %>
+    <% if (error && typeof error === 'string') { %>
       <aside class="errormessage"><%= error %></aside>
     <% } %>
     <% if (success) { %>
@@ -35,6 +35,9 @@
             name="fullname" 
             value="<%= data.fullname || '' %>"
         />
+        <% if (error && error.fullname) { %>
+          <span class="error"><%= error.fullname %></span>
+        <% } %>
     </div>
     <div>
         <label>Mobile:</label>
@@ -44,6 +47,9 @@
             value="<%= data.mobile || '' %>"
             maxlength="10"
         />
+        <% if (error && error.mobile) { %>
+          <span class="error"><%= error.mobile %></span>
+        <% } %>
     </div>
     <div>
         <label>Email:</label>
@@ -52,6 +58,9 @@
             name="email" 
             value="<%= data.email || '' %>"
         />
+        <% if (error && error.email) { %>
+          <span class="error"><%= error.email %></span>
+        <% } %>
     </div>
     <div>
         <label>Password:</label>
@@ -60,6 +69,9 @@
             name="password" 
             value="<%= data.password || '' %>"
         />
+        <% if (error && error.password) { %>
+          <span class="error"><%= error.password %></span>
+        <% } %>
     </div>
     <div> 
         <label>Role:</label>
@@ -71,6 +83,9 @@
 
           <!-- <option value="superadmin" <%= data.role === 'superadmin' ? 'selected' : '' %>>Superadmin</option> -->
         </select>
+        <% if (error && error.role) { %>
+          <span class="error"><%= error.role %></span>
+        <% } %>
     </div>
     <div>
       <button type="submit">Submit</button>

@@ -51,6 +51,7 @@ body { font-family: Arial, Helvetica, sans-serif; }
 .formpart aside.errormessage { background: #ffdddd; color: #ff0000; border-color: #ff9090; }
 .formpart aside.successmessage { background: #d4edda; color: #155724;  border-color: #a5fab9; }
 .formpart aside.infomessage { background: #fffea8; color: #155724;  border-color: #e0dd03; }
+.formpart span.error { width: 100%; margin: 5px 0 10px 0; text-align: left; color: #f30; font-size:14px;  }
 .formpart label { padding: 0 0 10px 0; margin: 0;  color: #000; font-size: 16px; width: 100%; }
 .formpart input, select { margin: 10px 0 10px 0; padding: 10px 15px;  color: #000; font-size: 16px; width: 100%; }
 .formpart button{  display: inline-block;  padding: 10px 25px;  background-color: #007bff;  font-size: 16px;  color: white;  border: none;  text-decoration: none;  border-radius: 4px;  cursor: pointer; }

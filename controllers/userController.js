@@ -3,7 +3,9 @@ import { hashedPassword, comparePassword } from '../utils/password.js';
 import { rollQuery } from "../utils/queryHelper.js";
 import { getPagination } from "../utils/pagination.js";
 import { validateUserInput } from '../utils/validation.js';
-import { renderList } from "../utils/renderHandler.js";
+import { 
+  returnList, returnDetails, returnAdd, returnUpdate, returnChangePassword, returnDashboard 
+} from "../utils/renderHandler.js";
 
 import path from 'path';
 import fs from 'fs';
@@ -38,7 +40,7 @@ export const getAll = async (req, res) => {
                   .skip(skip)
                   .limit(limit);
     if (!result || result.length === 0) {
-      return renderList({ 
+      return returnList({ 
         res, 
         status:409, 
         view: 'list', 
@@ -50,7 +52,7 @@ export const getAll = async (req, res) => {
         order 
       });
     }
-     return renderList({ 
+     return returnList({ 
         res, 
         status:200, 
         view: 'list', 
@@ -63,7 +65,7 @@ export const getAll = async (req, res) => {
       });
       
   } catch (error) {
-    return renderList({ 
+    return returnList({ 
         res, 
         status:500, 
         view: 'list', 
@@ -93,7 +95,7 @@ export const getHided = async (req, res) => {
                   .skip(skip)
                   .limit(limit);
     if (!result || result.length === 0) {
-      return renderList({ 
+      return returnList({ 
         res, 
         status:409, 
         view: 'list-hide', 
@@ -105,7 +107,7 @@ export const getHided = async (req, res) => {
         order 
       });
     }
-     return renderList({ 
+     return returnList({ 
         res, 
         status:200, 
         view: 'list-hide', 
@@ -118,7 +120,7 @@ export const getHided = async (req, res) => {
       });
   } catch (error) {
 
-    return renderList({ 
+    return returnList({ 
         res, 
         status:500, 
         view: 'list-hide', 
@@ -140,71 +142,106 @@ export const getById = async (req, res) => {
   try {
     const result = await userModels.findById(id);
     if (!result) {
-      return res.status(404).render('userview/detail', { 
-        error: 'Record not found', 
-        result: '', 
-        querydata 
+      return returnDetails({ 
+        res, 
+        status:404, 
+        view: 'detail', 
+        error: "Record not found", 
+        result:[], 
+        querydata
       });
     } 
-    console.log("User by id - ",result);
-    res.render("userview/detail", { 
-      error:null, 
-      result:result, 
-      querydata 
-    });
+      return returnDetails({ 
+        res, 
+        status:200, 
+        view: 'detail', 
+        error:null, 
+        result:result, 
+        querydata
+      });
   } catch (error) {
-    console.error('Error fetching User by id:', error.message);
-    res.status(500).render('userview/detail', { 
-      error: 'Internal Server Error', 
-      result: '', 
-      querydata 
-    });
+      return returnDetails({ 
+        res, 
+        status:500, 
+        view: 'detail', 
+        error: 'Internal Server Error', 
+        result:[], 
+        querydata
+      });
   }
 };
 
+
+ 
+
+
 export const renderAdd = async (req, res) => {
   const data = {fullname: '', mobile: '', email: ''}
-  res.render('userview/create', { 
-    success:null, 
-    error: null, 
-    data 
-  });
+      return returnAdd({ 
+        res, 
+        status:200, 
+        view: 'create', 
+        success:null, 
+        error: null, 
+        data
+      });
 }
 export const handleAdd = async (req, res) => {
   const { fullname, mobile, email, password, role } = req.body;
   const data = {fullname, mobile, email, password, role}
   const errorMsg = validateUserInput({ fullname, mobile, email, password, role });
-  if (errorMsg.length > 0) {
-    return res.status(400).render('userview/create', {
-      success:null, 
-      error:errorMsg.join(" "),
-      data
-    });
+  if (Object.keys(errorMsg).length > 0) {
+      return returnAdd({ 
+        res, 
+        status:200, 
+        view: 'create', 
+        success:null, 
+        error:errorMsg,
+        data
+      });
   }
   try {
     const hashedWithSaltPassword = await hashedPassword(password)
     const ud = { fullname, mobile, email, password:hashedWithSaltPassword, role, otpTemp:null, otpExpiry:null, createdBy:req.session.user.id  }
     const result = await userModels.create(ud);
-    console.log("New User created: ", result);
-    return res.status(200).render('userview/create', {
-          success:'User added successfully.',
-          error: null,
+      if (!result) {
+        return returnAdd({ 
+          res, 
+          status:400, 
+          view: 'create', 
+          success:null,
+          error: 'Something went wrong.',
           data
         });
+      }
+      return returnAdd({ 
+        res, 
+        status:200, 
+        view: 'create', 
+        success:'User added successfully.',
+        error: null,
+        data
+      });
   } catch (err) {
     if (err.code === 11000) {
       const field = Object.keys(err.keyPattern)[0];
-      return res.status(409).render('userview/create', {
-          success:null,
-          error: `${field} already exists.`,
-          data
-        });
+      return returnAdd({ 
+        res, 
+        status:409, 
+        view: 'create', 
+        success:null,
+        error: `${field} already exists.`,
+        data
+      });
     }
-    return res.status(500).render('userview/create', {
-          success:null,
-          error: 'Internal Server Error. Please try again later.',
-          data
-        });
+    return returnAdd({ 
+        res, 
+        status:200, 
+        view: '500', 
+        success:null,
+        error: 'Internal Server Error. Please try again later.',
+        data
+    });
   }
 };
 
@@ -219,31 +256,40 @@ export const renderUpdate = async (req, res) => {
   try {
     const result = await userModels.findById(id);
     if (!result) {
-      return res.status(404).render("userview/update", { 
+      return returnUpdate({ 
+        res, 
+        status:404, 
+        view: 'update', 
         success: null, 
-        error: 'Record not found', 
-        result: datablank, 
-        querydata: qd
+        error: "Record not found", 
+        result:datablank, 
+        querydata:qd
       });
     } 
-    return res.status(200).render("userview/update", { 
-      success: null, 
-      error: null, 
-      result: result, 
-      querydata: qd
+    return returnUpdate({ 
+        res, 
+        status:200, 
+        view: 'update', 
+        success:null, 
+        error:null, 
+        result:result, 
+        querydata:qd
     });
   } catch (err) {
-    console.error('Error in renderUpdate:', err);
-    return res.status(500).render("userview/update", { 
-      success: null, 
-      error: 'Internal Server Error', 
-      result: datablank, 
-      querydata: qd
+    return returnUpdate({ 
+        res, 
+        status:500, 
+        view: 'update', 
+        success: null, 
+        error: 'Internal Server Error', 
+        result:datablank, 
+        querydata:qd
     });
   }
 };
+
 export const handleUpdate = async (req, res) => {
-const { page, sortBy, order, fullname, email, mobile, password, role } = req.body;
+const { page, sortBy, order, fullname, email, mobile, role } = req.body;
   const { id } = req.params;
   const data = {  id, fullname, email, mobile, role };
   const qd = { page, sortBy, order }
@@ -254,23 +300,29 @@ const { page, sortBy, order, fullname, email, mobile, password, role } = req.bod
   } else {
     errorMsg = validateUserInput({ fullname, mobile, email, role });
   }
-  if (errorMsg.length > 0) {
-    return res.status(400).render('userview/update', {
-      success:null, 
-      error:errorMsg.join(" "),
-      result:data, 
-      querydata:qd
+  if (Object.keys(errorMsg).length > 0) {
+    return returnUpdate({ 
+        res, 
+        status:400, 
+        view: 'update', 
+        success: null, 
+        error:errorMsg,
+        result:data, 
+        querydata:qd
     });
   }
 
   try {
     const user = await userModels.findById(id);
     if (!user) {
-      return res.status(404).render("userview/update", {
-        success: null,
-        error: 'Record not found',
-        result: { fullname:'', email:'', mobile:'', role:'' },
-        querydata: qd
+      return returnUpdate({ 
+        res, 
+        status:404, 
+        view: 'update', 
+        success: null, 
+        error:'Record not found',
+        result:{ fullname:'', email:'', mobile:'', role:'' }, 
+        querydata:qd
       });
     }
     const updateData = { fullname, email, mobile, role, updatedBy:req.session.user.id, updatedAt: new Date(), otpTemp:null, otpExpiry:null };
@@ -294,26 +346,34 @@ const { page, sortBy, order, fullname, email, mobile, password, role } = req.bod
 
     const updatedUser = await userModels.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
     if (!updatedUser)  {
-      return res.status(409).render("userview/update", { 
-        success:null, 
-        error: 'Record not Updated', 
+      return returnUpdate({ 
+        res, 
+        status:409, 
+        view: 'update', 
+        success: null, 
+        error:'Not Updated',
         result:data, 
-        querydata:qd 
+        querydata:qd
       });
     }
-    return res.status(200).render("userview/update", {
-      success: 'Profile updated successfully.',
-      error: null,
-      result: updatedUser,
-      querydata: qd
+    return returnUpdate({ 
+        res, 
+        status:200, 
+        view: 'update', 
+        success: 'Profile updated successfully.', 
+        error:null,
+        result:data, 
+        querydata:qd
     });
   } catch (err) {
-    console.error('Error updating profile:', err);
-    return res.status(500).render("userview/update", {
-      success: null,
-      error: 'Internal Server Error',
-      result: { fullname:'', email:'', mobile:'', role:'' },
-      querydata: qd
+    return returnUpdate({ 
+        res, 
+        status:409, 
+        view: 'update', 
+        success: null, 
+        error:'Internal Server Error',
+        result:data, 
+        querydata:qd
     });
   }
 };
@@ -408,100 +468,128 @@ export const handleDelete = async (req, res) => {
 
 export const renderChangePassword = (req, res) => {
   const data = { oldpassword:'', newpassword:'', confirmpassword:'' }
-  res.status(200).render('userview/password-change', { 
-    success:null,
-    error:null, 
-    data
+  return returnChangePassword({ 
+        res, 
+        status:200, 
+        view: 'password-change', 
+        success: null, 
+        error: null, 
+        data
   });
 };
 
-  export const handleChangePassword = async (req, res) => {
+export const handleChangePassword = async (req, res) => {
   const { oldpassword, password, confirmpassword } = req.body;
   const data = { oldpassword, password, confirmpassword }
   const userSessionID = req.session.user.id;
- 
   if (!userSessionID) {
-    return res.status(401).render('userview/password-change', {
-      success: null,
-      error: "Unauthorized access.",
-      data
+    return returnChangePassword({ 
+        res, 
+        status:401, 
+        view: 'password-change', 
+        success: null, 
+        error: "Unauthorized access.",
+        data
     });
   }
   const errorMsg = validateUserInput({ oldpassword, password, confirmpassword  });
-  if (errorMsg.length > 0) {
-    return res.status(400).render('userview/password-change', {
-      success:null, 
-      error:errorMsg.join(", "),
-      data,
+  if (Object.keys(errorMsg).length > 0) {
+    return returnChangePassword({ 
+        res, 
+        status:400, 
+        view: 'password-change', 
+        success: null, 
+        error:errorMsg,
+        data
     });
   }
    
   try {
     const result = await userModels.findById(userSessionID);
     if (!result) {
-      return res.status(409).render('userview/password-change', {  
-        success:null,
+      return returnChangePassword({ 
+        res, 
+        status:404, 
+        view: 'password-change', 
+        success: null, 
         error:'Record not found.', 
         data
       });
     }
     const isMatch = await comparePassword(oldpassword, result.password);
     if (!isMatch) {
-      return res.status(409).render('userview/password-change', { 
-        success:null,
-        error:'Old password is incorrect.', 
-        data
+      return returnChangePassword({ 
+            res, 
+            status:409, 
+            view: 'password-change', 
+            success: null, 
+            error:'Old password is Incorrect.', 
+            data
       });
     }
     result.password = await hashedPassword(password);
     const saved = await result.save();
     if(!saved) {
-      res.status(200).render('userview/password-change', {
-        success: 'Password Not changed.',
-        error:null,
+      return returnChangePassword({ 
+        res, 
+        status:201, 
+        view: 'password-change', 
+        success: null, 
+        error: 'Password Not changed.', 
         data
       });
     }
-    res.status(200).render('userview/password-change', {
-      success: 'Password changed successfully.',
-      error:null,
-      data
-    });
-  
+    return returnChangePassword({ 
+        res, 
+        status:200, 
+        view: 'password-change', 
+        success: 'Password changed successfully.', 
+        error: null, 
+        data
+  });
   } catch (err) {
-    console.error('Password change error:', err);
-    res.status(500).render('userview/password-change', {  
-      success:null,
-      error:'Internal server error.', 
-      data
-    });
+      return returnChangePassword({ 
+        res, 
+        status:500, 
+        view: 'password-change', 
+        success: null, 
+        error:'Internal server error.', 
+        data
+      });
   }
-
 };
 
 
 export const renderDashboard = async (req, res) => {
   const userSession = req.session.user;
   if (!userSession) {
-      return res.status(409).render('userview/dashboard', { 
-       userSession:null, 
-       error:'User Session not available', 
-       data:null
-      });
+    return returnDashboard({ 
+        res, 
+        status:400, 
+        view: 'dashboard', 
+        userSession: null, 
+        error:'User Session not available', 
+        data: []
+    });
   }
-
   const data = await userModels.findById(userSession.id);
-    if (!data) {
-      return res.status(409).render('userview/dashboard', { 
-       userSession, 
-       error:'Error in data fatching', 
-       data:null
-      });
-    }
-  res.status(200).render('userview/dashboard', { 
-    userSession, 
-    error:null,
-    data
+  if (!data) {
+    return returnDashboard({ 
+        res, 
+        status:409, 
+        view: 'dashboard', 
+        userSession, 
+        error:'Error in data fatching', 
+        data: []
+    });
+  }
+  return returnDashboard({ 
+        res, 
+        status:409, 
+        view: 'dashboard', 
+        userSession, 
+        error:null, 
+        data
   });
 };
  

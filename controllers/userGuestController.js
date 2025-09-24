@@ -3,14 +3,21 @@ import userModels from "../models/userModels.js";
 import { hashedPassword, comparePassword } from '../utils/password.js';
 import otpGenrater from '../utils/genrateOTP.js';
 import { validateUserInput } from '../utils/validation.js';
- 
+import { 
+   returnRegister, returnVR, returnLogin, returnPF, returnPasswordOTP, returnPR
+} from "../utils/renderHandler.js";
+
+
 export const renderRegister = async (req, res) => {
   const data = {fullname: '', mobile: '', email: '', password: '', confirmpassword: '' }
-  res.render('userview/register', { 
-    success:null, 
-    error: null, 
-    data 
-  });
+    return returnRegister({ 
+        res, 
+        status:201, 
+        view: 'register', 
+        success: null, 
+        error:null, 
+        data
+    });
 }
  
 export const handleRegister = async (req, res) => {
@@ -18,11 +25,15 @@ export const handleRegister = async (req, res) => {
   const { fullname, mobile, email, password, confirmpassword } = req.body;
   const data = { fullname, mobile, email, password, confirmpassword }
   const errorMsg = validateUserInput({ fullname:fullname, mobile:mobile, email:email, password:password, confirmpassword:confirmpassword });
-  if (errorMsg.length > 0) {
-    return res.status(400).render('userview/register', {
-      success:null, 
-      error:errorMsg.join(", "),
-      data,
+  // if (errorMsg.length > 0) {
+  if (Object.keys(errorMsg).length > 0) {
+    return returnRegister({ 
+        res, 
+        status:400, 
+        view: 'register', 
+        success: null, 
+        error:errorMsg,
+        data
     });
   }
 
@@ -38,11 +49,10 @@ export const handleRegister = async (req, res) => {
           data
         });
   }
-
   try { 
     // ✅ Send OTP email
     await sendOtpEmail(email, otpTemp, "register");  
-    console.log(`OTP ${otpTemp} sent to ${email}`);
+    // console.log(`OTP ${otpTemp} sent to ${email}`);
 
     // ✅ Store user data + OTP in session
     const newdata = { ...data, otpTemp,  otpExpiry };
@@ -50,25 +60,33 @@ export const handleRegister = async (req, res) => {
     console.log("temp user session - ", newdata)
     req.session.save((err) => {
       if (err) {
-        return res.status(405).render('userview/register', {
-          success: null,
+        return returnRegister({ 
+          res, 
+          status:405, 
+          view: 'register', 
+          success: null, 
           error: 'Failed to save session. Try again.',
           data
         });
       }
     });
-    res.status(200).render('userview/register', {
-          success:`OTP sent to ${email}. It will expire in ${otpTime} minutes.`,
-          error: null,
-          data 
-      });
+    return returnRegister({ 
+        res, 
+        status:200, 
+        view: 'register', 
+        success:`OTP sent to ${email}. It will expire in ${otpTime} minutes.`,
+        error:null, 
+        data
+    });
   } catch (err) {
-    console.log("Internal Server Error - ", err)
-    res.status(500).render('userview/register', {
-          success:null,
-          error: 'Internal Server Error. Please try again later.',
-          data
-        });
+    return returnRegister({ 
+        res, 
+        status:500, 
+        view: 'register', 
+        success: null, 
+         error: 'Internal Server Error. Please try again later.',
+        data
+    });
   }
 };
 
@@ -76,58 +94,76 @@ export const handleRegister = async (req, res) => {
 
 export const renderVerifyRegister = async (req, res) => {
   if (!req.session.tempUser) {
-    return res.status(400).render('userview/register-verify', { 
-      success:null, 
-      info:'Session Expire. Please resubmit',
-      error: null, 
-      data: ''
+    return returnVR({ 
+        res, 
+        status:400, 
+        view: 'register-verify', 
+        success: null, 
+        info:'Session Expire. Please resubmit',
+        error:null,
+        data:null
     });
   }
   const data = req.session.tempUser;
-  res.status(200).render('userview/register-verify', { 
-      success:null, 
-      info:null,
-      error: null, 
-      data
+    return returnVR({ 
+        res, 
+        status:200, 
+        view: 'register-verify', 
+        success: null, 
+        info:null,
+        error:null,
+        data
     });
 }
  
 export const handleVerifyRegister = async (req, res) => {
- if (!req.session.tempUser) {
-    return res.status(400).render('userview/register-verify', { 
-      success:null, 
-      info:'Session Expire. Please resubmit',
-      error: null, 
-      data: ''
+  if (!req.session.tempUser) {
+    return returnVR({ 
+        res, 
+        status:400, 
+        view: 'register-verify', 
+        success: null, 
+        info:'Session Expire. Please resubmit',
+        error:null,
+        data:''
     });
   } 
  const { fullname, mobile, email, password, otpTemp, otpExpiry } = req.session.tempUser;
-const data = req.session.tempUser;
+ const data = req.session.tempUser;
  const { otp } = req.body;
  const errorMsg = validateUserInput({ otp: otp });
-  if (errorMsg.length > 0) {
-    return res.status(400).render('userview/register-verify', {
-      success:null, 
-      info:null,
-      error:errorMsg.join(" "),
-      data
+  if (Object.keys(errorMsg).length > 0) {
+    return returnVR({ 
+        res, 
+        status:400, 
+        view: 'register-verify', 
+        success: null, 
+        info:null,
+        error:errorMsg,
+        data
     });
   }
   if (new Date(otpExpiry) < new Date()) {
-      return res.status(400).render('userview/register-verify', {
-        success: null,
-        info:null,
-        error: 'OTP has expired',
+    return returnVR({ 
+        res, 
+        status:400, 
+        view: 'register-verify', 
+        success: null, 
+        info:'OTP has expired, Please try again.',
+        error: null,
         data
-      });
+    });
   }
   if (otpTemp !== otp) {
-      return res.status(400).render('userview/register-verify', {
-        success: null,
+    return returnVR({ 
+        res, 
+        status:400, 
+        view: 'register-verify', 
+        success: null, 
         info:null,
         error: 'Invalid OTP',
         data
-      });
+    });
   }
  try { 
     let hasshedWithSaltPassword = await hashedPassword(password);
@@ -135,10 +171,13 @@ const data = req.session.tempUser;
     const result = await userModels.create(finaldata);
     if(!result)
     {
-      return res.status(400).render('userview/register-verify', {
-        success: null,
+      return returnVR({ 
+        res, 
+        status:400, 
+        view: 'register-verify', 
+        success: null, 
         info:null,
-        error: 'Error in Registation',
+         error: 'Error in Registation',
         data
       });
     }
@@ -146,19 +185,25 @@ const data = req.session.tempUser;
     // temp data session clear
     req.session.tempUser = null; 
 
-    res.status(200).render('userview/register-verify', {
-          success:'OTP verified. Registation successfully.',
-          info:null,
-          error: null,
-          data:''
-        });
+    return returnVR({ 
+        res, 
+        status:200, 
+        view: 'register-verify', 
+        success:'OTP verified. Registation successfully.',
+        info:null,
+        error:null,
+        data:''
+    });
+
   } catch (err) {
-    console.error('OTP verification error:', err);
-    res.status(500).render('userview/register-verify', {
-      success: null,
-      info:null,
-      error: 'Internal server error',
-      data
+    return returnVR({ 
+        res, 
+        status:500, 
+        view: 'register-verify', 
+        success: null, 
+        info:null,
+        error: 'Internal server error',
+        data
     });
   }
 };
@@ -166,10 +211,13 @@ const data = req.session.tempUser;
 
 export const renderLogin = async (req, res) => {
   const data = { email:'', password:'' }
-  res.render('userview/login', { 
-    success:null, 
-    error: null, 
-    data
+  return returnLogin({ 
+        res, 
+        status:201, 
+        view: 'login', 
+        success: null, 
+        error:null, 
+        data
   });
 }
  
@@ -177,29 +225,38 @@ export const handleLogin = async (req, res) => {
   const { email, password } = req.body;
   const data = { email, password }
   const errorMsg = validateUserInput({ email: email, password:password });
-  if (errorMsg.length > 0) {
-    return res.status(400).render('userview/login', {
-      success: null,
-      error: errorMsg.join(" "),
-      data
+  if (Object.keys(errorMsg).length > 0) {
+    return returnLogin({ 
+        res, 
+        status:400, 
+        view: 'login', 
+        success: null, 
+        error: errorMsg,
+        data
     });
   }
   try {
     const result = await userModels.findOne({ email });
     if (!result) {
-      return res.status(409).render('userview/login', {
-          success:null, 
-          error: 'Invalid email id',
-          data
-        });
+      return returnLogin({ 
+        res, 
+        status:409, 
+        view: 'login', 
+        success: null, 
+        error: 'Invalid email id',
+        data
+      });
     }
     const isMatch = await comparePassword(password, result.password); 
     if (!isMatch) {
-      return res.status(409).render('userview/login', {
-          success:null, 
-          error: 'Invalid password',
-          data
-        });
+      return returnLogin({ 
+        res, 
+        status:409, 
+        view: 'login', 
+        success: null, 
+        error: 'Invalid password',
+        data
+      });
     }
     req.session.user = {
       id: result._id,
@@ -209,24 +266,30 @@ export const handleLogin = async (req, res) => {
     };
    req.session.save(err => {
       if (err) {
-        console.error("Session not saved", err);
-        res.status(501).render('userview/login', {
-            success:null, 
-            error: 'Session error',
+        return returnLogin({ 
+            res, 
+            status:501, 
+            view: 'login', 
+            success: null, 
+            error: 'Session not created.',
             data
         });
       }
-      console.log("session id - ", req.session.user);
-      return res.status(200).render('userview/login', {
-          success:'Login successful.', 
-          error: null,
-          data
+      return returnLogin({ 
+        res, 
+        status:200, 
+        view: 'login', 
+        success:'Login successful.', 
+        error:null, 
+        data
       });
     });
   } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).render('userview/login', {
-        success:null, 
+    return returnLogin({ 
+        res, 
+        status:500, 
+        view: 'login', 
+        success: null, 
         error: 'Internal Server Error',
         data
     });
@@ -236,31 +299,40 @@ export const handleLogin = async (req, res) => {
 
 
 export const renderPasswordForget = (req, res) => {
-  res.status(200).render('userview/password-forget', { 
-    success:null, 
-    error:null,
-    email: ''
+  return returnPF({ 
+        res, 
+        status:201, 
+        view: 'password-forget', 
+        success: null, 
+        error: null,
+        email:''
   });
 };  
 export const handlePasswordForget = async (req, res) => {
   const { otpTemp, otpExpiry, otpTime } = otpGenrater();
   const { email } = req.body;
   const errorMsg = validateUserInput({ email: email });
-  if (errorMsg.length > 0) {
-    return res.status(400).render('userview/password-forget', {
-      error: errorMsg.join(" "),
-      email,
-      success: null
+  if (Object.keys(errorMsg).length > 0) {
+    return returnPF({ 
+        res, 
+        status:400, 
+        view: 'password-forget', 
+        success: null, 
+        error: errorMsg,
+        email
     });
   }
   try {
     // Check if user exists
     const checkuserbyemail = await userModels.findOne({ email });
     if (!checkuserbyemail) {
-      return res.status(409).render('userview/password-forget', {
+      return returnPF({ 
+        res, 
+        status:409, 
+        view: 'password-forget', 
+        success: null, 
         error: 'Email not found',
-        email,
-        success: null
+        email
       });
     }
 
@@ -271,46 +343,56 @@ export const handlePasswordForget = async (req, res) => {
 
     // Update user with OTP details
     await checkuserbyemail.save();  
-    console.log(`OTP ${otpTemp} genrated, It will be expire in - ${otpTime} minutes. ===> ${otpExpiry}`);
-
+ 
     // Send OTP to email
     await sendOtpEmail(email, otpTemp, "forget"); 
-    console.log(`OTP ${otpTemp} sent to ${email}`);
-
+ 
     // Store email in session
     req.session.fpStep1 = email; 
-    console.log(`forgetPassword Session step 1 - ${req.session.fpStep1}`);
-
-    res.status(200).render('userview/password-forget', {  
-            success: `OTP sent to ${email}. It will expire in ${otpTime} minutes.`,
-            error: null,
-            email
-        });
+ 
+    return returnPF({ 
+        res, 
+        status:200, 
+        view: 'password-forget', 
+        success: `OTP sent to ${email}. It will expire in ${otpTime} minutes.`,
+        error: null,
+        email
+    });
   } catch (err) {
-    console.error('Forget password error:', err);
-    res.status(500).render('userview/password-forget', {
-      success: null,
-      error: 'Internal server error',
-      email
+    return returnPF({ 
+        res, 
+        status:500, 
+        view: 'password-forget', 
+        success: null, 
+        error: 'Internal server error',
+        email
     });
   }
 };
 
+
+
 export const renderPasswordOtp  = (req, res) => {
   const email = req.session.fpStep1;
   if (!email) {
-    return  res.status(400).render('userview/password-otp', {
-      success: null,
-      info:'Verify your email first.',
-      error: null,
-      email 
+    return returnPasswordOTP({ 
+        res, 
+        status:400, 
+        view: 'password-otp', 
+        success: null, 
+        info:'Verify your email first.',
+        error: null,
+        email
     });
   }
-  res.status(200).render('userview/password-otp', { 
-    success:null, 
-    info:null,
-    error:null,
-    email
+  return returnPasswordOTP({ 
+        res, 
+        status:200, 
+        view: 'password-otp', 
+        success: null, 
+        info: null,
+        error: null,
+        email
   });
 }; 
 
@@ -319,85 +401,106 @@ export const handlePasswordOtp = async (req, res) => {
   const { otp } = req.body;
   const email = req.session.fpStep1;
   const errorMsg = validateUserInput({ otp: otp });
-  if (errorMsg.length > 0) {
-    return res.status(400).render('userview/password-otp', {
-      success:null, 
-      info:null,
-      error:errorMsg.join(" "),
-      email
+  if (Object.keys(errorMsg).length > 0) {
+    return returnPasswordOTP({ 
+        res, 
+        status:400, 
+        view: 'password-otp', 
+        success: null, 
+        info: null,
+        error:errorMsg,
+        email
     });
   }
   try {
     const user = await userModels.findOne({ email });
     if (!user || user.otpTemp !== otp) {
-      return res.status(400).render('userview/password-otp', {
-        success: null,
-        info:null,
+      return returnPasswordOTP({ 
+        res, 
+        status:400, 
+        view: 'password-otp', 
+        success: null, 
+        info: null,
         error: 'Invalid OTP',
         email
       });
     } 
     if (user.otpExpiry < new Date()) {
-      return res.status(400).render('userview/password-otp', {
-        success: null,
-        info:null,
-        error: 'OTP has expired',
+      return returnPasswordOTP({ 
+        res, 
+        status:400, 
+        view: 'password-otp', 
+        success: null, 
+        info: 'OTP has expired, Please try again.',
+        error: null,
         email
       });
     }
 
     // Store verifyOTP in session
     req.session.fpStep2 = user.otpExpiry; 
-    console.log(`verifyOTP Session step 2 - ${req.session.fpStep2}`);
 
     // OTP verified successfully
-    res.render('userview/password-otp', {
-      success: 'OTP verified. You can now reset your password.',
-      info:null,
-      error: null,
-      email,
+    return returnPasswordOTP({ 
+        res, 
+        status:200, 
+        view: 'password-otp', 
+        success: 'OTP verified. You can now reset your password.',
+        info: null,
+        error: null,
+        email
     });
-
   } catch (err) {
-    console.error('OTP verification error:', err);
-    res.status(500).render('userview/password-otp', {
-      success: null,
-      info:null,
-      error: 'Internal server error',
-      email,
+    return returnPasswordOTP({ 
+        res, 
+        status:500, 
+        view: 'password-otp', 
+        success: null, 
+        info: null,
+        error: 'Internal server error',
+        email
     });
   }
 };
 
 
-
+      
 
 export const renderPasswordReset = (req, res) => {
   const email = req.session.fpStep1;
   const expiretime = req.session.fpStep2;
   const data = { email, password:'', confirmpassword:'' }
   if (!email && !expiretime) {
-    return  res.status(400).render('userview/password-reset', {
-      success: null,
-      info:'Verify your email and OTP first.',
-      error: null,
-      data
-    });
+      return returnPR({ 
+        res, 
+        status:400, 
+        view: 'password-reset', 
+        success: null, 
+        info:'Verify your email and OTP first.',
+        error: null,
+        data
+      });
   }
   if (email && !expiretime) {
-    return  res.status(400).render('userview/password-reset', {
-      success: null,
-      info:'Please verify OTP first.',
-      error: null,
-      data
-    });
+      return returnPR({ 
+        res, 
+        status:400, 
+        view: 'password-reset', 
+        success: null, 
+        info:'Please verify OTP first.',
+        error: null,
+        data
+      });
   }
-  res.status(200).render('userview/password-reset', { 
-    success:null, 
-    info:null,
-    error:null,
-    data
-  });
+      return returnPR({ 
+        res, 
+        status:200, 
+        view: 'password-reset', 
+        success: null, 
+        info: null,
+        error: null,
+        data
+      });
 }; 
 
 export const handlePasswordReset = async (req, res) => {
@@ -405,21 +508,27 @@ export const handlePasswordReset = async (req, res) => {
   const { password, confirmpassword } = req.body;
   const data = { email, password, confirmpassword }
   const errorMsg = validateUserInput({ password: password, confirmpassword:confirmpassword });
-  if (errorMsg.length > 0) {
-    return res.status(400).render('userview/password-reset', {
-      success:null, 
-      info:null,
-      error:errorMsg.join(" "),
-      data
-    });
+  if (Object.keys(errorMsg).length > 0) {
+      return returnPR({ 
+        res, 
+        status:400, 
+        view: 'password-reset', 
+        success: null, 
+        info: null,
+        error:errorMsg,
+        data
+      });
   }
   try {
     // check if Entered password is different from Previous password
     const getByEmail = await userModels.findOne({ email });
     const isSame = await comparePassword(password, getByEmail.password);  
     if (isSame) {
-      return res.status(409).render('userview/password-reset', {
-        success: null,
+      return returnPR({ 
+        res, 
+        status:409, 
+        view: 'password-reset', 
+        success: null, 
         info: null,
         error: 'Entered password and Previous password is same. Please enter different password',
         data
@@ -432,37 +541,38 @@ export const handlePasswordReset = async (req, res) => {
       { password:hasshedPasswordWithSalt, otpTemp: null, otpExpiry: null },
       { new: true }
     );
-
     if (!user) {
-      return res.status(400).render('userview/password-reset', {
-        success: null,
-        info:null,
+      return returnPR({ 
+        res, 
+        status:400, 
+        view: 'password-reset', 
+        success: null, 
+        info: null,
         error: 'Record not found',
         data
       });
     }
-
     // Clear session data related to password reset
-    console.log(`Both before destroy - ${req.session.fpStep1} - ${req.session.fpStep2}`);
     req.session.fpStep1 = null;
     req.session.fpStep2 = null;
-    console.log(`Both after destroy - ${req.session.fpStep1} - ${req.session.fpStep2}`);
-
-
-    res.render('userview/password-reset', {
-      success: 'Password reset successfully! You can now log in.',
-      info:null,
-      error: null,
-      data
-    });
-
+      return returnPR({ 
+        res, 
+        status:200, 
+        view: 'password-reset', 
+        success: 'Password reset successfully! You can now log in.',
+        info: null,
+        error: null,
+        data
+      });
   } catch (err) {
-    console.error('Reset password error:', err);
-    res.status(500).render('userview/password-reset', {
-      success: null,
-      info:null,
-      error: 'Internal server error',
-      data
-    });
+    return returnPR({ 
+        res, 
+        status:500, 
+        view: 'password-reset', 
+        success: null, 
+        info: null,
+        error: 'Internal server error',
+        data
+      });
   }
 };

@@ -1,6 +1,6 @@
-// constants/validation.js
+// utils/validation.js
 export const validateUserInput = (input) => {
-  const errorMsg = [];
+  const errorMsg = {};
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const mobileRegex = /^[6-9]\d{9}$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;  
@@ -11,24 +11,24 @@ export const validateUserInput = (input) => {
  
   // Validate fullname if present
   if (has('fullname') && !fullname) {
-    errorMsg.push("Full name is required.");
+    errorMsg.fullname = "Full name is required."
   }
 
   // Validate mobile if present
   if (has('mobile')) {
     if (!mobile) {
-      errorMsg.push("Mobile number is required.");
+      errorMsg.mobile = "Mobile number is required.";
     } else if (!mobileRegex.test(mobile)) {
-      errorMsg.push("Mobile number must be exactly 10 digits and start with 6-9.");
+      errorMsg.mobile = "Mobile number must be exactly 10 digits and start with 6-9.";
     }
   }
 
   // Validate email if present
   if (has('email')) {
     if (!email) {
-      errorMsg.push("Email is required.");
+      errorMsg.email = "Email is required.";
     } else if (!emailRegex.test(email)) {
-      errorMsg.push("Email format is invalid.");
+      errorMsg.email = "Email format is invalid.";
     }
   }
 
@@ -36,41 +36,43 @@ export const validateUserInput = (input) => {
   // Validate oldpassword if present
   if (has('oldpassword')) {
     if (!oldpassword) {
-      errorMsg.push("Old Password is required.");
+      errorMsg.oldpassword = "Old Password is required.";
     } else if (!passwordRegex.test(oldpassword)) {
-      errorMsg.push("Old Password must be at least 6 characters, must include uppercase, lowercase, number, and special character.");
+      errorMsg.oldpassword = "Old Password must be at least 6 characters, must include uppercase, lowercase, number, and special character.";
+    } else if (password === oldpassword) {
+      errorMsg.oldpassword = "Old Password and New Password is same. Please try defrant";
     }
   }
 
   // Validate password if present
   if (has('password')) {
     if (!password) {
-      errorMsg.push("Password is required.");
+      errorMsg.password = "Password is required.";
     } else if (!passwordRegex.test(password)) {
-      errorMsg.push("Password must be at least 6 characters, must include uppercase, lowercase, number, and special character.");
+      errorMsg.password = "Password must be at least 6 characters, must include uppercase, lowercase, number, and special character.";
     }
   }
 
   // Validate confirmPassword if present
   if (has('confirmpassword')) {
     if (!confirmpassword) {
-      errorMsg.push("Confirm password is required.");
+      errorMsg.confirmpassword = "Confirm password is required.";
     } else if (password !== confirmpassword) {
-      errorMsg.push("Passwords do not match.");
+      errorMsg.confirmpassword = "Passwords do not match.";
     }
   }
 
   // Validate role if present
   if (has('role') && !role) {
-    errorMsg.push("Role is required.");
+    errorMsg.role = "Role is required.";
   }
 
   // Validate OTP if present
   if (has('otp')) {
     if (!otp) {
-      errorMsg.push("OTP is required.");
+      errorMsg.otp = "OTP is required.";
      } else if (!otpRegex.test(otp)) {
-      errorMsg.push("OTP must be exactly 6 digits");
+      errorMsg.otp = "OTP must be exactly 6 digits";
     }
   }
 
@@ -78,11 +80,4 @@ export const validateUserInput = (input) => {
   return errorMsg;
 };
 
-
  
-// Login form
-//const errorMsg = validateUserInput({ email: req.body.email, password: req.body.password });
-
-// Registration form
-// const errorMsg = validateUserInput(req.body); // includes fullname, mobile, email, password, confirmPassword, role
-

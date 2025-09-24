@@ -12,7 +12,7 @@
   </p>
   
   <form class="formpart" action="/users/register" method="post">
-    <% if (error) { %>
+    <% if (error && typeof error === 'string') { %>
       <aside class="errormessage"><%= error %></aside>
     <% } %>
     <% if (success) { %>
@@ -30,6 +30,9 @@
             name="fullname" 
             value="<%= data.fullname || '' %>"
         />
+        <% if (error && error.fullname) { %>
+          <span class="error"><%= error.fullname %></span>
+        <% } %>
     </div>
     <div>
         <label>Mobile:</label>
@@ -39,6 +42,9 @@
             value="<%= data.mobile || '' %>"
             maxlength="10"
         />
+        <% if (error && error.mobile) { %>
+          <span class="error"><%= error.mobile %></span>
+        <% } %>
     </div>
     <div>
         <label>Email:</label>
@@ -47,6 +53,9 @@
             name="email" 
             value="<%= data.email || '' %>"
         />
+        <% if (error && error.email) { %>
+          <span class="error"><%= error.email %></span>
+        <% } %>
     </div>
     <div>
         <label>Password:</label>
@@ -56,6 +65,9 @@
             value="<%= data.password || '' %>"
             
         />
+        <% if (error && error.password) { %>
+          <span class="error"><%= error.password %></span>
+        <% } %>
     </div>
     <div>
         <label>Confirm Password:</label>
@@ -64,6 +76,9 @@
             name="confirmpassword" 
             value="<%= data.confirmpassword || '' %>"
         />
+        <% if (error && error.confirmpassword) { %>
+          <span class="error"><%= error.confirmpassword %></span>
+        <% } %>
     </div>
     <div>
       <button type="submit">Submit</button>
