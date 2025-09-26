@@ -11,7 +11,7 @@
     Please enter your email and password to log in.
   </p>
  
-  <form class="formpart" action="/users/login" method="post">
+  <form class="formpart" id="formpart" action="/users/login" method="post">
     <% if (error && typeof error === 'string') { %>
       <aside class="errormessage"><%= error %></aside>
     <% } %>
@@ -48,9 +48,8 @@
     <div>
         <a href="/users/password-forget">Forgot Password?</a>      
     </div>
-    <div>
-      <button type="submit">Login</button>
-    </div>
+    
+    <%- include('../partials/button', { text: 'Login' }) %>
   </form>
 </section>
 <%- include('../partials/footer', { title: 'EMP Management System' }) %>

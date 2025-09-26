@@ -51,6 +51,6 @@
   <li><strong>Helmet.js</strong> – Helmet is a collection of smaller middleware functions that set secure HTTP headers.</li>
   <li><strong>CORS</strong> – You can allow specific origin, methods, headers, and credentials</li>
   <li><strong>compression</strong> – Middleware enables Gzip (or Brotli) compression in your Express.js app, reducing the size of your HTTP responses</li>
-  <li><strong><a href="/api-docs">API Documentation: Swagger</a> -</strong>  Document your API endpoints, Test them interactively in the browser, Auto-generate client/server code, Support authentication and validation</li>
+  <li><strong><a href="https://auth-with-express-and-mongodb.onrender.com/api-docs/" target="_blank">API Documentation: Swagger</a> -</strong>  Document your API endpoints, Test them interactively in the browser, Auto-generate client/server code, Support authentication and validation</li>
 </li>
 </ul>

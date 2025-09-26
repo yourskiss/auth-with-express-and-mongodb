@@ -1,0 +1,30 @@
+<!-- views/partials/header.ejs -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>button</title>
+ 
+</head>
+<body>
+  <div>
+    <button type="submit" id="formBtnContainer" class="formBtnContainer">
+      <span id="formBtnText"><%= text %></span>
+      <em id="formBtnLoader"></em>
+    </button>
+  </div>
+
+
+<script>
+  const form = document.getElementById('formpart');
+  const formBtnContainer = document.getElementById('formBtnContainer');
+  const formBtnText = document.getElementById('formBtnText');
+  const formBtnLoader = document.getElementById('formBtnLoader');
+  form.addEventListener('submit', function (e) {
+    formBtnContainer.disabled = true;
+    formBtnText.innerHTML = "Please wait ";
+    formBtnLoader.style.display = "inline-block";
+  });
+  </script>
+</body>
+</html>

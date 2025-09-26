@@ -16,7 +16,7 @@
     Please fill in the details below to create a new user.
   </p>
   
-  <form class="formpart" action="/users/create" method="post">
+  <form class="formpart"  id="formpart" action="/users/create" method="post">
     <% if (error && typeof error === 'string') { %>
       <aside class="errormessage"><%= error %></aside>
     <% } %>
@@ -87,9 +87,9 @@
           <span class="error"><%= error.role %></span>
         <% } %>
     </div>
-    <div>
-      <button type="submit">Submit</button>
-    </div>
+
+
+    <%- include('../partials/button', { text: 'Submit' }) %>
   </form>
 </section>
 <%- include('../partials/footer', { title: 'EMP Management System' }) %>

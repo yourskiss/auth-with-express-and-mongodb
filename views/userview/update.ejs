@@ -20,7 +20,7 @@
     <% }   %>
   </h4>
   
-  <form class="formpart" action="/users/update/<%= result.id %>" method="post" enctype="multipart/form-data">
+  <form class="formpart"  id="formpart" action="/users/update/<%= result.id %>" method="post" enctype="multipart/form-data">
     <% if (error && typeof error === 'string') { %>
       <aside class="errormessage"><%= error %></aside>
     <% } %>
@@ -102,9 +102,9 @@
         <% } %>
     </div>
     <% } %>
-    <div>
-      <button type="submit">Update</button>
-    </div>
+ 
+
+    <%- include('../partials/button', { text: 'Update' }) %>
   </form>
 </section>
 <%- include('../partials/footer', { title: 'EMP Management System' }) %>
