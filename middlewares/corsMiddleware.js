@@ -1,16 +1,9 @@
 import cors from 'cors';
 
- 
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
- 
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim().replace(/\/$/, '')) || [];
+
 const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },  
+  origin:allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],  
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header'],
