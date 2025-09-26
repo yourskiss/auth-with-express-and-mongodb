@@ -36,12 +36,21 @@
   <li><strong>MongoDB Atlas</strong> – Cloud-hosted NoSQL database</li>
   <li><strong>Mongoose</strong> – ODM for MongoDB with schema validation and models</li>
   <li><strong>EJS</strong> – Templating engine for dynamic HTML rendering</li>
-  <li><strong>Zod</strong> – Type-safe validation for request data</li>
-  <li><strong>Bcrypt</strong> – Library for secure password hashing</li>
-  <li><strong>Express-Session</strong> – Middleware to manage user sessions</li>
-  <li><strong>Nodemailer</strong> – Used to send OTPs via SMTP email</li>
   <li><strong>GitHub</strong> – Version control and project collaboration</li>
   <li><strong>Render.com</strong> – Hosting platform for deploying the live application</li>
+
   <li><strong>Multer</strong> – Multer for file uploads </li>
-   
+  <li><strong>Sharp</strong> – Image processing library that allows you to resize, crop, rotate, convert, and manipulate images.</li>
+  <li><strong>Nodemailer</strong> – Used to send OTPs via SMTP email</li>
+  <li><strong>deep-email-validator</strong> – Deep validation of email addresses</li>
+  <li><strong>Zod</strong> – Type-safe validation for request data</li>
+  <li><strong>Bcrypt</strong> – Library for secure password hashing</li>
+  <li><strong>Connect-Mongo</strong> – connect-mongo is a session store middleware for Express that stores session data in a MongoDB database.</li>
+  <li><strong>express-session</strong> – express-session is a middleware that allows you to create and manage sessions in Express applications</li>
+  <li><strong>express-rate-limit</strong> – Protect your app from brute-force attacks or abuse by limiting repeated requests from the same IP over a specified time window. </li>
+  <li><strong>Helmet.js</strong> – Helmet is a collection of smaller middleware functions that set secure HTTP headers.</li>
+  <li><strong>CORS</strong> – You can allow specific origin, methods, headers, and credentials</li>
+  <li><strong>compression</strong> – Middleware enables Gzip (or Brotli) compression in your Express.js app, reducing the size of your HTTP responses</li>
+  <li><strong>API Documentation - </strong> Swagger - Document your API endpoints, Test them interactively in the browser, Auto-generate client/server code, Support authentication and validation</li>
+</li>
 </ul>

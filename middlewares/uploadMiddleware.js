@@ -1,10 +1,10 @@
+// middleware/uploadPP.js
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-// recreate __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -16,9 +16,10 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    const basename = path.basename(file.originalname, ext).replace(/\s+/g, '-');
-    const randomNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-    const unique = `${randomNumber}-${Date.now()}${ext}`;
+   // const basename = path.basename(file.originalname, ext).replace(/\s+/g, '-');
+   // const randomNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+   // const unique = `${randomNumber}-${Date.now()}${ext}`;
+    const unique = `${Date.now()}${ext}`;
     cb(null, unique);
   }
 });

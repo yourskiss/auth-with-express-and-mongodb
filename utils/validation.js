@@ -1,10 +1,11 @@
-// utils/validation.js
-export const validateUserInput = (input) => {
+// import { validateEmail } from "./deepEmailValidator.js";
+export const validateUserInput = async  (input) => {
   const errorMsg = {};
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const mobileRegex = /^[6-9]\d{9}$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;  
   const otpRegex = /^[0-9]\d{5}$/;  
+  
 
   const { fullname, mobile, email, oldpassword, password, confirmpassword, role, otp } = input;
   const has = (field) => Object.prototype.hasOwnProperty.call(input, field);
@@ -14,6 +15,7 @@ export const validateUserInput = (input) => {
     errorMsg.fullname = "Full name is required."
   }
 
+  
   // Validate mobile if present
   if (has('mobile')) {
     if (!mobile) {
@@ -30,6 +32,27 @@ export const validateUserInput = (input) => {
     } else if (!emailRegex.test(email)) {
       errorMsg.email = "Email format is invalid.";
     }
+    /* 
+    else {
+      const checkEmail = await  validateEmail(email);  
+      let reasonText = 'Unknown reason';
+            if (checkEmail.reason === 'typo') {
+              reasonText = checkEmail.validators?.typo?.reason || reasonText;
+            } else if (checkEmail.reason === 'mx') {
+              reasonText = checkEmail.validators?.mx?.reason || reasonText;
+            } else if (checkEmail.reason === 'smtp') {
+              reasonText = checkEmail.validators?.smtp?.reason || reasonText;
+            } else if (checkEmail.reason === 'disposable') {
+              reasonText = checkEmail.validators?.disposable?.reason || reasonText;
+            } else if (checkEmail.reason === 'role') {
+              reasonText = checkEmail.validators?.role?.reason || reasonText;
+            }
+      if (!checkEmail.valid) 
+      {
+        errorMsg.email = `Invalid email: ${reasonText}`;
+      }
+    }
+    */
   }
 
   
@@ -40,7 +63,7 @@ export const validateUserInput = (input) => {
     } else if (!passwordRegex.test(oldpassword)) {
       errorMsg.oldpassword = "Old Password must be at least 6 characters, must include uppercase, lowercase, number, and special character.";
     } else if (password === oldpassword) {
-      errorMsg.oldpassword = "Old Password and New Password is same. Please try defrant";
+      errorMsg.oldpassword = "Old Password and New Password is same. Please try different";  
     }
   }
 

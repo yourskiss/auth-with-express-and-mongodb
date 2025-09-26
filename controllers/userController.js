@@ -7,12 +7,10 @@ import {
   returnList, returnDetails, returnAdd, returnUpdate, returnChangePassword, returnDashboard 
 } from "../utils/renderHandler.js";
 
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { processProfileImage } from '../utils/uploadProcessor.js';
+
+
+
 
 export const handleLogout = async (req, res) => {
   req.session.destroy(err => {
@@ -189,7 +187,7 @@ export const renderAdd = async (req, res) => {
 export const handleAdd = async (req, res) => {
   const { fullname, mobile, email, password, role } = req.body;
   const data = {fullname, mobile, email, password, role}
-  const errorMsg = validateUserInput({ fullname, mobile, email, password, role });
+  const errorMsg = await validateUserInput({ fullname, mobile, email, password, role });
   if (Object.keys(errorMsg).length > 0) {
       return returnAdd({ 
         res, 
@@ -288,96 +286,55 @@ export const renderUpdate = async (req, res) => {
   }
 };
 
-export const handleUpdate = async (req, res) => {
-const { page, sortBy, order, fullname, email, mobile, role } = req.body;
-  const { id } = req.params;
-  const data = {  id, fullname, email, mobile, role };
-  const qd = { page, sortBy, order }
 
-  let errorMsg = null;
-  if(req.session.user.id === id) {
-    errorMsg = validateUserInput({ fullname, mobile, email });
-  } else {
-    errorMsg = validateUserInput({ fullname, mobile, email, role });
-  }
+export const handleUpdate = async (req, res) => {
+  const { page, sortBy, order, fullname, email, mobile, role } = req.body;
+  const img = req.file;
+  const { id } = req.params;
+  const data = { id, fullname, email, mobile, role };
+  const qd = { page, sortBy, order };
+
+  let errorMsg = req.session.user.id === id
+    ? await validateUserInput({ fullname, mobile, email })
+    : await validateUserInput({ fullname, mobile, email, role });
+
   if (Object.keys(errorMsg).length > 0) {
-    return returnUpdate({ 
-        res, 
-        status:400, 
-        view: 'update', 
-        success: null, 
-        error:errorMsg,
-        result:data, 
-        querydata:qd
-    });
+    return returnUpdate({ res, status: 400, view: 'update', success: null, error: errorMsg, result: data, querydata: qd });
   }
 
   try {
     const user = await userModels.findById(id);
     if (!user) {
-      return returnUpdate({ 
-        res, 
-        status:404, 
-        view: 'update', 
-        success: null, 
-        error:'Record not found',
-        result:{ fullname:'', email:'', mobile:'', role:'' }, 
-        querydata:qd
-      });
+      return returnUpdate({ res, status: 404, view: 'update', success: null, error: 'Record not found', result: { fullname: '', email: '', mobile: '', role: '' }, querydata: qd });
     }
-    const updateData = { fullname, email, mobile, role, updatedBy:req.session.user.id, updatedAt: new Date(), otpTemp:null, otpExpiry:null };
-    if (req.file) {
-      // Delete old photo file if it exists
-      if (user.profilepicture && user.profilepicture.filename) {
-        const oldPath = path.join(__dirname, '../public/userprofile', user.profilepicture.filename);
-        fs.unlink(oldPath, (err) => {
-          if (err) {
-            console.error("Failed to delete old photo:", err);
-          }
-        });
-      }
-      // Set new photo info
-      updateData.profilepicture = {
-        url: `/userprofile/${req.file.filename}`,
-        filename: req.file.filename,
-        contentType: req.file.mimetype
-      };
+
+    const updateData = {
+      fullname,
+      email,
+      mobile,
+      role,
+      updatedBy: req.session.user.id,
+      updatedAt: new Date(),
+      otpTemp: null,
+      otpExpiry: null
+    };
+
+    if (img) {
+      const profileData = await processProfileImage(img, user.profilepicture, user.id);
+      updateData.profilepicture = profileData;
     }
 
     const updatedUser = await userModels.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
-    if (!updatedUser)  {
-      return returnUpdate({ 
-        res, 
-        status:409, 
-        view: 'update', 
-        success: null, 
-        error:'Not Updated',
-        result:data, 
-        querydata:qd
-      });
+    if (!updatedUser) {
+      return returnUpdate({ res, status: 409, view: 'update', success: null, error: 'Not Updated', result: data, querydata: qd });
     }
-    return returnUpdate({ 
-        res, 
-        status:200, 
-        view: 'update', 
-        success: 'Profile updated successfully.', 
-        error:null,
-        result:data, 
-        querydata:qd
-    });
+
+    return returnUpdate({ res, status: 200, view: 'update', success: 'Profile updated successfully.', error: null, result: data, querydata: qd });
   } catch (err) {
-    return returnUpdate({ 
-        res, 
-        status:409, 
-        view: 'update', 
-        success: null, 
-        error:'Internal Server Error',
-        result:data, 
-        querydata:qd
-    });
+    console.error(err);
+    return returnUpdate({ res, status: 500, view: 'update', success: null, error: 'Internal Server Error', result: data, querydata: qd });
   }
 };
-
 
 
 export const handleDisabled = async (req, res) => {
@@ -492,7 +449,7 @@ export const handleChangePassword = async (req, res) => {
         data
     });
   }
-  const errorMsg = validateUserInput({ oldpassword, password, confirmpassword  });
+  const errorMsg = await validateUserInput({ oldpassword, password, confirmpassword  });
   if (Object.keys(errorMsg).length > 0) {
     return returnChangePassword({ 
         res, 

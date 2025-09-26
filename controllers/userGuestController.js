@@ -6,8 +6,7 @@ import { validateUserInput } from '../utils/validation.js';
 import { 
    returnRegister, returnVR, returnLogin, returnPF, returnPasswordOTP, returnPR
 } from "../utils/renderHandler.js";
-
-
+ 
 export const renderRegister = async (req, res) => {
   const data = {fullname: '', mobile: '', email: '', password: '', confirmpassword: '' }
     return returnRegister({ 
@@ -24,7 +23,7 @@ export const handleRegister = async (req, res) => {
   const { otpTemp, otpExpiry, otpTime } = otpGenrater();
   const { fullname, mobile, email, password, confirmpassword } = req.body;
   const data = { fullname, mobile, email, password, confirmpassword }
-  const errorMsg = validateUserInput({ fullname:fullname, mobile:mobile, email:email, password:password, confirmpassword:confirmpassword });
+  const errorMsg = await validateUserInput({ fullname:fullname, mobile:mobile, email:email, password:password, confirmpassword:confirmpassword });
   // if (errorMsg.length > 0) {
   if (Object.keys(errorMsg).length > 0) {
     return returnRegister({ 
@@ -52,7 +51,7 @@ export const handleRegister = async (req, res) => {
   try { 
     // ✅ Send OTP email
     await sendOtpEmail(email, otpTemp, "register");  
-    // console.log(`OTP ${otpTemp} sent to ${email}`);
+     console.log(`OTP ${otpTemp} sent to ${email}`);
 
     // ✅ Store user data + OTP in session
     const newdata = { ...data, otpTemp,  otpExpiry };
@@ -131,7 +130,7 @@ export const handleVerifyRegister = async (req, res) => {
  const { fullname, mobile, email, password, otpTemp, otpExpiry } = req.session.tempUser;
  const data = req.session.tempUser;
  const { otp } = req.body;
- const errorMsg = validateUserInput({ otp: otp });
+ const errorMsg = await validateUserInput({ otp: otp });
   if (Object.keys(errorMsg).length > 0) {
     return returnVR({ 
         res, 
@@ -224,7 +223,7 @@ export const renderLogin = async (req, res) => {
 export const handleLogin = async (req, res) => {
   const { email, password } = req.body;
   const data = { email, password }
-  const errorMsg = validateUserInput({ email: email, password:password });
+  const errorMsg = await validateUserInput({ email: email, password:password });
   if (Object.keys(errorMsg).length > 0) {
     return returnLogin({ 
         res, 
@@ -311,7 +310,7 @@ export const renderPasswordForget = (req, res) => {
 export const handlePasswordForget = async (req, res) => {
   const { otpTemp, otpExpiry, otpTime } = otpGenrater();
   const { email } = req.body;
-  const errorMsg = validateUserInput({ email: email });
+  const errorMsg = await validateUserInput({ email: email });
   if (Object.keys(errorMsg).length > 0) {
     return returnPF({ 
         res, 
@@ -346,6 +345,7 @@ export const handlePasswordForget = async (req, res) => {
  
     // Send OTP to email
     await sendOtpEmail(email, otpTemp, "forget"); 
+    console.log(`OTP ${otpTemp} sent to ${email}. It will expire in ${otpTime} minutes.`)
  
     // Store email in session
     req.session.fpStep1 = email; 
@@ -400,7 +400,7 @@ export const renderPasswordOtp  = (req, res) => {
 export const handlePasswordOtp = async (req, res) => {
   const { otp } = req.body;
   const email = req.session.fpStep1;
-  const errorMsg = validateUserInput({ otp: otp });
+  const errorMsg = await validateUserInput({ otp: otp });
   if (Object.keys(errorMsg).length > 0) {
     return returnPasswordOTP({ 
         res, 
@@ -507,7 +507,7 @@ export const handlePasswordReset = async (req, res) => {
   const email = req.session.fpStep1;
   const { password, confirmpassword } = req.body;
   const data = { email, password, confirmpassword }
-  const errorMsg = validateUserInput({ password: password, confirmpassword:confirmpassword });
+  const errorMsg = await validateUserInput({ password: password, confirmpassword:confirmpassword });
   if (Object.keys(errorMsg).length > 0) {
       return returnPR({ 
         res, 

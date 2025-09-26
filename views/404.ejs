@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>404 - Not Found</title>
+  <style>
+ 
+    h1 { text-align: center; font-size: 3em; margin:3rem 0 1rem 0; }
+    p { text-align: center; font-size: 1.2em; margin:0 0 1rem 0; }
+    a { color: #007bff; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<%- include('./partials/header') %>
+
+<section class="sectionmin">
+
+  <h1>404 <%= title %> </h1>
+  <p><%= message %> 😢</p>
+  <p>
+    <br />
+    <a href="/">Return to Home</a>
+    </p>
+
+</section>
+
+<%- include('./partials/footer', { title: 'EMP Management System' }) %>
+
+</body>
+</html>

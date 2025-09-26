@@ -1,41 +1,26 @@
 import express from "express";
 const app = express();
-import session from 'express-session';
-import MongoStore from 'connect-mongo';
-
 
 import { PORT } from "./config/env.js";
 import connectDB from "./config/db.js";
 import { userRoutes } from "./routes/userRoutes.js";
+import { swaggerDocs } from "./config/swagger.js";
 
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import sessionMiddleware from './middlewares/sessionMiddleware.js';
+import limiterMiddleware from "./middlewares/rateLimitMiddleware.js";
+import corsMiddleware from "./middlewares/corsMiddleware.js";
+import helmetMiddleware from './middlewares/helmetMiddleware.js';
+import compressionMiddleware from "./middlewares/compressionMiddleware.js";
 
- 
+// make directory accessible for public use
+app.use(express.static("public"));
+
 // Connect to Databse
 connectDB();
 
-// genrate session
-app.use(session({
-  secret: process.env.SECRET_KEY,
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    ttl: 60 * 60, 
-  }),
-  cookie: {
-    maxAge: 60 * 60 * 1000, 
-    httpOnly: true,  
-    secure: false  
-  }
-}));
+// documentation 
+swaggerDocs(app);
 
-
- 
 // ejs
 app.set('view engine', 'ejs');
 
@@ -45,11 +30,20 @@ app.use(express.urlencoded({ extended: true }));
 // Middleware - Parse incoming JSON
 app.use(express.json());
 
-// make public folder accessible for public use
-app.use(express.static("public"));
+// Middleware - session
+app.use(sessionMiddleware);
 
-// serve static uploads
-// app.use('/userprofile', express.static(path.join(__dirname, 'public/userprofile')));
+// Middleware - compression
+app.use(compressionMiddleware);
+
+// Middleware -  limiter
+app.use(limiterMiddleware);
+
+// Middleware - cors
+app.use(corsMiddleware);
+
+// Middleware - helmet 
+app.use(helmetMiddleware);
 
 
 // get user session value
@@ -58,14 +52,26 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get("/", (req, res) => {
-  // res.send("hello");
-  res.redirect('/users/login');
+ 
+ 
+app.get('/', (req, res) => {
+  res.redirect("/users")
+});
+app.get('/test', (req, res) => {
+  res.send('test from Express with Pino!');
 });
 
-
+// user routers
 app.use("/users",userRoutes);
 
+// 404 page
+app.use((req, res, next) => {
+  res.status(404).render('404', {
+    title: 'Page Not Found',
+    message: "Oops! The page you're looking for doesn't exist."
+  });
+});
+ 
 
 // run to the server on the port
 app.listen(PORT, () => {
