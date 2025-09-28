@@ -1,6 +1,7 @@
  
 import winston from 'winston';
 import 'winston-daily-rotate-file';
+import { v4 as uuidv4 } from 'uuid';
 
 const { combine, timestamp, printf } = winston.format;
 
@@ -35,15 +36,29 @@ const logger = winston.createLogger({
 
 // Capture client info
 const clientInfo = (req) => {
-//  console.log("session in clientInfo", req.session?.user)
+    req.requestId = uuidv4();
+    const sessionID = req.session?.user?.id ? true : false;
+    const ua = req.useragent || {};
      return {
-        endpoint: req.originalUrl,
-        method: req.method,
-        userId: req.session?.user?.id || 'guest',
-        role: req.session?.user?.role || 'guest',
-        timestamp: new Date().toISOString(),
-        ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
-        userAgent: req.headers['user-agent'],
+          requestId: req.requestId,
+          timestamp: new Date().toISOString(),
+          method: req.method,
+          endpoint: req.path, // req.originalUrl,
+          query: req.query || {},
+        //  params: req.params || {}, 
+          userId: req.session?.user?.id || 'guest',
+          role: req.session?.user?.role || 'guest',
+          isAuthenticated: sessionID,
+          device: ua.isMobile ? 'Mobile' : ua.isTablet ? 'Tablet' : 'Desktop',
+          platform: ua.platform,
+          os: ua.os,
+          browser: ua.browser,
+          browserVersion: ua.version,
+          ip: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress, 
+        //  userAgent: req.headers['user-agent'] || '',
+        //  referer: req.headers['referer'] || '',
+        //  origin: req.headers['origin'] || ''
+        
      }
   };
 

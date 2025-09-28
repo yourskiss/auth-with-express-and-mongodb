@@ -1,4 +1,5 @@
 import express from "express";
+import useragent from 'express-useragent';
 const app = express();
 
 import { PORT } from "./config/env.js"; // port
@@ -20,14 +21,12 @@ app.use(express.static('logs'));
 // Connect to Databse
 connectDB();
 
-// documentation 
-swaggerDocs(app);
-
-// Attach logger to each request
-app.use(winstonMiddleware); 
 
 // ejs
 app.set('view engine', 'ejs');
+
+// Middleware - session
+app.use(sessionMiddleware);
 
 // allows it to parse URL-encoded form data
 app.use(express.urlencoded({ extended: true }));
@@ -35,8 +34,8 @@ app.use(express.urlencoded({ extended: true }));
 // Middleware - Parse incoming JSON
 app.use(express.json());
 
-// Middleware - session
-app.use(sessionMiddleware);
+// Middleware to parse user-agent
+app.use(useragent.express());
 
 // Middleware - compression
 app.use(compressionMiddleware);
@@ -49,6 +48,12 @@ app.use(corsMiddleware);
 
 // Middleware - helmet 
 app.use(helmetMiddleware);
+
+// documentation 
+swaggerDocs(app);
+
+// Attach logger to each request
+app.use(winstonMiddleware); 
 
 
 // get user session value

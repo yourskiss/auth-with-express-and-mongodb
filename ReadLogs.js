@@ -50,6 +50,10 @@ export const reportLogs = async (req, res) => {
         }
 
         return { timestamp, level, message, ...metadata };
+      })
+      .sort((a, b) => {
+        if (!a.timestamp || !b.timestamp) return 0;
+        return new Date(b.timestamp) - new Date(a.timestamp);
       });
 
     // ✅ Pass to the view
@@ -102,8 +106,10 @@ export const downloadLogs = async (req, res) => {
       return { timestamp, level, message, ...metadata };
     }).filter(Boolean);
 
+
+
     // Build CSV
-    const headers = ['timestamp', 'level', 'message', 'userId', 'role', 'endpoint', 'method', 'ip', 'userAgent'];
+    const headers = ['timestamp', 'level', 'message', 'requestId', 'userId', 'role', 'isAuthenticated', 'endpoint', 'method', 'ip', 'device','platform','os','browser','browserVersion'];
     const csvRows = [headers.join(',')];
 
     parsedLogs.forEach(log => {
