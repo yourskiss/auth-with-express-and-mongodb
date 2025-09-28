@@ -1,3 +1,4 @@
+ 
 import winston from 'winston';
 import 'winston-daily-rotate-file';
 
@@ -19,7 +20,7 @@ const dailyRotateFileTransport = new winston.transports.DailyRotateFile({
   maxFiles: '14d',
 });
 
-export const wlogger = winston.createLogger({
+const logger = winston.createLogger({
   level: 'info',
   format: combine(
     timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
@@ -33,16 +34,33 @@ export const wlogger = winston.createLogger({
  
 
 // Capture client info
-export const clientInfo = (req) => {
+const clientInfo = (req) => {
+//  console.log("session in clientInfo", req.session?.user)
      return {
-        userId: req.session?.user?.id || 'guest',
-        role: req.session?.user?.role || 'guest',
         endpoint: req.originalUrl,
         method: req.method,
+        userId: req.session?.user?.id || 'guest',
+        role: req.session?.user?.role || 'guest',
         timestamp: new Date().toISOString(),
         ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
         userAgent: req.headers['user-agent'],
      }
   };
+
+ 
+
+export const winstonMiddleware = (req, res, next) => {
+  const clientdata = clientInfo(req);
+ // console.log("session in winstonMiddleware", req.session?.user)
+  req.logger = {
+    info: (msg, meta = {}) => logger.info(msg, { ...clientdata, ...meta }),
+    error: (msg, meta = {}) => logger.error(msg, { ...clientdata, ...meta }),
+    warn: (msg, meta = {}) => logger.warn(msg, { ...clientdata, ...meta }),
+    debug: (msg, meta = {}) => logger.debug(msg, { ...clientdata, ...meta }),
+  };
+
+  next();
+};
+
 
  

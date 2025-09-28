@@ -11,7 +11,7 @@ body { font-family: Arial, Helvetica, sans-serif; }
 
 .footerpart {  background-color: blueviolet;  box-sizing: border-box; width: 100%; padding: 20px; }
 .footerpart p {text-align: center; color: #fff; font-size: 16px; width: 100%; }
- 
+.footerpart p a {text-decoration: underline;color: #fff; }
 
 .sectionmin { background-color: #fff; width: 100%; padding: 20px 20px 40px 20px;  }
 
@@ -75,3 +75,17 @@ body { font-family: Arial, Helvetica, sans-serif; }
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.logscontrol { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0; margin:20px 0 0 0; }
+.logscontrol form { position: relative;  padding: 0; margin: 0; }
+.logscontrol form label { position: absolute; left: 0; top:-20px; padding: 4px 8px; background-color:#007bff; width:auto; color: #fff; font-size:12px; font-weight: normal; }
+.logscontrol form select { padding:8px 10px; margin: 0;  background-color: #fff; border: solid 1px #0056b3; width: auto; min-width: 100px; color: #000; font-size:16px; font-weight: normal; }
+.logscontrol p {  text-align: right; color: #000; font-size:18px; font-weight: bold;  }
+.logscontrol p a { text-decoration: underline; color: #007bff; }
+.logscontrol p a:hover { text-decoration: none; color: #000; }
+.logsNotFound { width: 100%; padding:5rem 0; text-align: center; color: #0056b3; font-size:24px; font-weight: normal;  }
+.logsNotFound b { color: rgb(6, 104, 209);  font-weight: bold; }
+.logstable { width: 100%; border-collapse: collapse; margin-top: 20px; }
+.logstable th, td { border: 1px solid #ccc; padding: 5px; text-align: left; vertical-align: top; }
+.logstable th { background-color: #f2f2f2; }
+.logstable pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }

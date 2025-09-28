@@ -5,15 +5,13 @@ import { PORT } from "./config/env.js"; // port
 import connectDB from "./config/db.js"; // db
 import { userRoutes } from "./routes/userRoutes.js"; // user routes
 import { swaggerDocs } from "./config/swagger.js"; //  documentation
-import {wlogger, clientInfo } from './winstonLogger.js'; // logger 
-import {listLogs, readLogs, downloadLogs} from "./ReadLogs.js"; // read log
 import sessionMiddleware from './middlewares/sessionMiddleware.js'; // session
 import limiterMiddleware from "./middlewares/rateLimitMiddleware.js"; // limit the request in specifice duration
 import corsMiddleware from "./middlewares/corsMiddleware.js"; // cors
 import helmetMiddleware from './middlewares/helmetMiddleware.js'; // helment
 import compressionMiddleware from "./middlewares/compressionMiddleware.js"; // request response compresor 
-
-
+import { winstonMiddleware } from "./middlewares/winstonMiddleware.js";  // logger  
+import {reportLogs, downloadLogs} from "./ReadLogs.js"; // read logger
 
 // make directory accessible for public use
 app.use(express.static("public"));
@@ -24,6 +22,9 @@ connectDB();
 
 // documentation 
 swaggerDocs(app);
+
+// Attach logger to each request
+app.use(winstonMiddleware); 
 
 // ejs
 app.set('view engine', 'ejs');
@@ -56,7 +57,12 @@ app.use((req, res, next) => {
   next();
 });
 
- 
+
+// test route
+ app.get('/test', (req, res) => {
+  res.send('test from Express with w!');
+});
+
 // main route
 app.get('/', (req, res) => {
   res.redirect("/users")
@@ -67,27 +73,20 @@ app.use("/users",userRoutes);
 
 
 
-app.get('/test', (req, res) => {
-    const clientdata = clientInfo(req);
-    console.log(clientdata)
-    wlogger.info('Started msge here', {  ...clientdata });
-    wlogger.warn('warning msge here', {  ...clientdata });
-    wlogger.error('err msge here', {  ...clientdata });
-  res.send('test from Express with w!');
-});
-app.use('/logs-list', listLogs);
-app.use('/logs-report', readLogs);
-app.use('/logs-download', downloadLogs);
+
+// log reports - router
+app.use('/report-logs', reportLogs);
+app.use('/download-logs', downloadLogs);
  
 
 
 // 404 page
-app.use((req, res, next) => {
-  res.status(404).render('404', {
-    title: 'Page Not Found',
-    message: "Oops! The page you're looking for doesn't exist."
-  });
-});
+// app.use((req, res, next) => {
+//   res.status(404).render('404', {
+//     title: 'Page Not Found',
+//     message: "Oops! The page you're looking for doesn't exist."
+//   });
+// });
 
 // run to the server on the port
 app.listen(PORT, () => {

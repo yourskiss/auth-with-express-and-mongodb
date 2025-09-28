@@ -6,18 +6,19 @@ import { validateUserInput } from '../utils/validation.js';
 import { 
   returnList, returnDetails, returnAdd, returnUpdate, returnChangePassword, returnDashboard 
 } from "../utils/renderHandler.js";
-
 import { processProfileImage } from '../utils/uploadProcessor.js';
-
+import { wlogs } from '../utils/winstonLogger.js'; // logger
 
 
 
 export const handleLogout = async (req, res) => {
   req.session.destroy(err => {
     if (err) {
+      wlogs(req, 'error', 'Logout - failed',  400);
       console.error('Logout error:', err);
       return res.status(500).send('Logout failed');
     }
+    wlogs(req, 'info', 'Logout - Successfull',  302);
     res.clearCookie('connect.sid'); // Optional: clears the session cookie
     res.redirect('/users/login'); // Redirect to login page
   });
@@ -38,9 +39,10 @@ export const getAll = async (req, res) => {
                   .skip(skip)
                   .limit(limit);
     if (!result || result.length === 0) {
+      wlogs(req, 'warn', 'Active User List - Successfull',  204);
       return returnList({ 
         res, 
-        status:409, 
+        status:204, 
         view: 'list', 
         error: "No record found", 
         result:[], 
@@ -50,6 +52,7 @@ export const getAll = async (req, res) => {
         order 
       });
     }
+     wlogs(req, 'info', 'Active User List - Successfull',  200);
      return returnList({ 
         res, 
         status:200, 
@@ -63,6 +66,7 @@ export const getAll = async (req, res) => {
       });
       
   } catch (error) {
+    wlogs(req, 'error', 'Active User List - Internal Server Error',  500);
     return returnList({ 
         res, 
         status:500, 
@@ -93,6 +97,7 @@ export const getHided = async (req, res) => {
                   .skip(skip)
                   .limit(limit);
     if (!result || result.length === 0) {
+      wlogs(req, 'error', 'Inactive User List - Not Found', 409);
       return returnList({ 
         res, 
         status:409, 
@@ -105,6 +110,7 @@ export const getHided = async (req, res) => {
         order 
       });
     }
+    wlogs(req, 'info', 'Inactive User List - Success', 200);
      return returnList({ 
         res, 
         status:200, 
@@ -117,7 +123,7 @@ export const getHided = async (req, res) => {
         order 
       });
   } catch (error) {
-
+    wlogs(req, 'error', 'Inactive User List - Internal Server Error', 500);
     return returnList({ 
         res, 
         status:500, 
@@ -140,15 +146,17 @@ export const getById = async (req, res) => {
   try {
     const result = await userModels.findById(id);
     if (!result) {
+      wlogs(req, 'error', 'User Detail - Not Found', 409);
       return returnDetails({ 
         res, 
-        status:404, 
+        status:409, 
         view: 'detail', 
         error: "Record not found", 
         result:[], 
         querydata
       });
     } 
+      wlogs(req, 'info', 'User Detail - Success', 200);
       return returnDetails({ 
         res, 
         status:200, 
@@ -158,6 +166,7 @@ export const getById = async (req, res) => {
         querydata
       });
   } catch (error) {
+      wlogs(req, 'error', 'User Detail - Internal Server Error', 500);
       return returnDetails({ 
         res, 
         status:500, 
@@ -189,9 +198,10 @@ export const handleAdd = async (req, res) => {
   const data = {fullname, mobile, email, password, role}
   const errorMsg = await validateUserInput({ fullname, mobile, email, password, role });
   if (Object.keys(errorMsg).length > 0) {
+      wlogs(req, 'error', 'Create User - Invalid Input',  400);
       return returnAdd({ 
         res, 
-        status:200, 
+        status:400, 
         view: 'create', 
         success:null, 
         error:errorMsg,
@@ -203,15 +213,17 @@ export const handleAdd = async (req, res) => {
     const ud = { fullname, mobile, email, password:hashedWithSaltPassword, role, otpTemp:null, otpExpiry:null, createdBy:req.session.user.id  }
     const result = await userModels.create(ud);
       if (!result) {
+        wlogs(req, 'error', 'Create User - Something went wrong',  409);
         return returnAdd({ 
           res, 
-          status:400, 
+          status:409, 
           view: 'create', 
           success:null,
           error: 'Something went wrong.',
           data
         });
       }
+      wlogs(req, 'info', 'Create User - Successfully', 200);
       return returnAdd({ 
         res, 
         status:200, 
@@ -223,6 +235,7 @@ export const handleAdd = async (req, res) => {
   } catch (err) {
     if (err.code === 11000) {
       const field = Object.keys(err.keyPattern)[0];
+      wlogs(req, 'warn', 'Create User - already exists.',  409);
       return returnAdd({ 
         res, 
         status:409, 
@@ -232,10 +245,11 @@ export const handleAdd = async (req, res) => {
         data
       });
     }
+    wlogs(req, 'error', 'Create User - Internal Server Error.',  500);
     return returnAdd({ 
         res, 
-        status:200, 
-        view: '500', 
+        status:500, 
+        view: 'create', 
         success:null,
         error: 'Internal Server Error. Please try again later.',
         data
@@ -254,6 +268,7 @@ export const renderUpdate = async (req, res) => {
   try {
     const result = await userModels.findById(id);
     if (!result) {
+      wlogs(req, 'error', 'Update User - Not Found',  404);
       return returnUpdate({ 
         res, 
         status:404, 
@@ -264,6 +279,7 @@ export const renderUpdate = async (req, res) => {
         querydata:qd
       });
     } 
+    wlogs(req, 'info', 'Update User - User Fetched',  200);
     return returnUpdate({ 
         res, 
         status:200, 
@@ -274,6 +290,7 @@ export const renderUpdate = async (req, res) => {
         querydata:qd
     });
   } catch (err) {
+    wlogs(req, 'info', 'Update User - Internal Server Error',  200);
     return returnUpdate({ 
         res, 
         status:500, 
@@ -299,13 +316,32 @@ export const handleUpdate = async (req, res) => {
     : await validateUserInput({ fullname, mobile, email, role });
 
   if (Object.keys(errorMsg).length > 0) {
-    return returnUpdate({ res, status: 400, view: 'update', success: null, error: errorMsg, result: data, querydata: qd });
+    wlogs(req, 'error', 'Update User - Invalid Input',  400);
+    return returnUpdate({ 
+      res, 
+      status: 400, 
+      view: 'update', 
+      success: null, 
+      error: errorMsg, 
+      result: data, 
+      querydata: qd 
+    });
   }
 
   try {
     const user = await userModels.findById(id);
     if (!user) {
-      return returnUpdate({ res, status: 404, view: 'update', success: null, error: 'Record not found', result: { fullname: '', email: '', mobile: '', role: '' }, querydata: qd });
+      wlogs(req, 'warn', 'Update User - Not Found',  409);
+      return returnUpdate({ 
+        res, 
+        status: 
+        404, 
+        view: 'update', 
+        success: null, 
+        error: 'Record not found', 
+        result: data,
+        querydata: qd 
+      });
     }
 
     const updateData = {
@@ -326,13 +362,38 @@ export const handleUpdate = async (req, res) => {
 
     const updatedUser = await userModels.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
     if (!updatedUser) {
-      return returnUpdate({ res, status: 409, view: 'update', success: null, error: 'Not Updated', result: data, querydata: qd });
+      wlogs(req, 'warn', 'Update User - Not Updated',  409);
+      return returnUpdate({ 
+        res, 
+        status: 409, 
+        view: 'update', 
+        success: null, 
+        error: 'Not Updated', 
+        result: data, 
+        querydata: qd 
+      });
     }
-
-    return returnUpdate({ res, status: 200, view: 'update', success: 'Profile updated successfully.', error: null, result: data, querydata: qd });
+    wlogs(req, 'info', 'Update User - successfull',  200);
+    return returnUpdate({ 
+      res, 
+      status: 200, 
+      view: 'update', 
+      success: 'Profile updated successfully.', 
+      error: null, 
+      result: data, 
+      querydata: qd 
+    });
   } catch (err) {
-    console.error(err);
-    return returnUpdate({ res, status: 500, view: 'update', success: null, error: 'Internal Server Error', result: data, querydata: qd });
+    wlogs(req, 'error', 'Update User - Internal Server Error',  500);
+    return returnUpdate({ 
+      res, 
+      status: 500, 
+      view: 'update', 
+      success: null, 
+      error: 'Internal Server Error', 
+      result: data, 
+      querydata: qd 
+    });
   }
 };
 
@@ -341,57 +402,57 @@ export const handleDisabled = async (req, res) => {
   let { id } = req.params;
   const { page, sortBy, order, limit, skip, sort } = getPagination(req);
   try {
-    // Soft delete instead of actual delete
-    const deleted = await userModels.findByIdAndUpdate(
+    const isDisabled = await userModels.findByIdAndUpdate(
       id,
       { deletedBy:req.session.user.id, isDeleted: true, deletedAt: new Date(), otpTemp:null, otpExpiry:null },
       { new: true }
     );
-    if (!deleted) {
-      return res.status(404).send("Record not deleted");
+    if (!isDisabled) {
+      wlogs(req, 'error', 'Disable User - Not Disabled',  404);
+      return res.status(404).send("Record not Disabled");
     }
-
-    // After soft-deleting, redirect or respond as before
+ 
     let remainingCount = await userModels.countDocuments({ isDeleted: false });
     let totalPages = Math.ceil(remainingCount / limit);
     if (page > totalPages && totalPages > 0) { page = totalPages; }
     if (totalPages === 0) { page = 1; }
 
+    wlogs(req, 'info', 'Disable User - Successfull',  302);
     let redirectQuery = `?page=${page}&sortBy=${sortBy}&order=${order}`;
     res.redirect(`/users/${redirectQuery}`);
-    console.log("User soft-deleted:", deleted);
+ 
   } catch (error) {
-    console.error('Error soft deleting User:', error.message);
+    wlogs(req, 'error', 'Disable User - Internal Server Error',  500);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
+ 
 export const handleEnabled = async (req, res) => {
 let { id } = req.params;
 const { page,  sortBy, order, limit, skip, sort } = getPagination(req);
 
   try {
-    // Soft delete instead of actual delete
-    const deleted = await userModels.findByIdAndUpdate(
+    const isEnabled = await userModels.findByIdAndUpdate(
       id,
       { deletedBy:null, isDeleted: false, deletedAt:null, otpTemp:null, otpExpiry:null },
       { new: true }
     );
-    if (!deleted) {
-      return res.status(404).send("Record not deleted  ");
+    if (!isEnabled) {
+      wlogs(req, 'error', 'Enable User - Not Enabled',  404);
+      return res.status(404).send("Record not Enabled  ");
     }
-
-    // After soft-deleting, redirect or respond as before
+ 
     let remainingCount = await userModels.countDocuments({ isDeleted: true });
     let totalPages = Math.ceil(remainingCount / limit);
     if (page > totalPages && totalPages > 0) { page = totalPages; }
     if (totalPages === 0) { page = 1; }
 
+    wlogs(req, 'info', 'Enable User - Successfull',  302);
     let redirectQuery = `?page=${page}&sortBy=${sortBy}&order=${order}`;
     res.redirect(`/users/hide/${redirectQuery}`);
-    console.log("User soft-deleted:", deleted);
+
   } catch (error) {
-    console.error('Error soft deleting User:', error.message);
+    wlogs(req, 'error', 'Disable User - Internal Server Error',  500);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
@@ -403,6 +464,7 @@ export const handleDelete = async (req, res) => {
   try {
     const deleted = await userModels.findByIdAndDelete(id);
     if (!deleted) {
+      wlogs(req, 'error', 'Delete User - Not Deleted',  404);
       return res.status(404).send("Record not deleted");
     }
  
@@ -411,12 +473,12 @@ export const handleDelete = async (req, res) => {
     if (page > totalPages && totalPages > 0) { page = totalPages;}
     if (totalPages === 0) { page = 1;}
 
-
+    wlogs(req, 'info', 'Delete User - Successfull',  302);
     const redirectQuery = `?page=${page}&sortBy=${sortBy}&order=${order}`;
     res.redirect(`/users/hide/${redirectQuery}`);
-    console.log("User deleted:", deleted);
+ 
   } catch (error) {
-    console.error('Error deleting User:', error.message);
+    wlogs(req, 'error', 'Delete User - Internal Server Error',  500);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
@@ -439,18 +501,10 @@ export const handleChangePassword = async (req, res) => {
   const { oldpassword, password, confirmpassword } = req.body;
   const data = { oldpassword, password, confirmpassword }
   const userSessionID = req.session.user.id;
-  if (!userSessionID) {
-    return returnChangePassword({ 
-        res, 
-        status:401, 
-        view: 'password-change', 
-        success: null, 
-        error: "Unauthorized access.",
-        data
-    });
-  }
+  
   const errorMsg = await validateUserInput({ oldpassword, password, confirmpassword  });
   if (Object.keys(errorMsg).length > 0) {
+    wlogs(req, 'error', 'Change Password - Invalid Input',  400);
     return returnChangePassword({ 
         res, 
         status:400, 
@@ -464,6 +518,7 @@ export const handleChangePassword = async (req, res) => {
   try {
     const result = await userModels.findById(userSessionID);
     if (!result) {
+      wlogs(req, 'warn', 'Change Password - Not Found',  404);
       return returnChangePassword({ 
         res, 
         status:404, 
@@ -475,6 +530,7 @@ export const handleChangePassword = async (req, res) => {
     }
     const isMatch = await comparePassword(oldpassword, result.password);
     if (!isMatch) {
+      wlogs(req, 'warn', 'Change Password - Incorrect Old password',  409);
       return returnChangePassword({ 
             res, 
             status:409, 
@@ -487,15 +543,17 @@ export const handleChangePassword = async (req, res) => {
     result.password = await hashedPassword(password);
     const saved = await result.save();
     if(!saved) {
+      wlogs(req, 'warn', 'Change Password - Not Changed.',  409);
       return returnChangePassword({ 
         res, 
-        status:201, 
+        status:409, 
         view: 'password-change', 
         success: null, 
         error: 'Password Not changed.', 
         data
       });
     }
+    wlogs(req, 'info', 'Change Password - Successfully',  200);
     return returnChangePassword({ 
         res, 
         status:200, 
@@ -505,6 +563,7 @@ export const handleChangePassword = async (req, res) => {
         data
   });
   } catch (err) {
+      wlogs(req, 'error', 'Change Password - Internal server error',  500);
       return returnChangePassword({ 
         res, 
         status:500, 
@@ -519,18 +578,9 @@ export const handleChangePassword = async (req, res) => {
 
 export const renderDashboard = async (req, res) => {
   const userSession = req.session.user;
-  if (!userSession) {
-    return returnDashboard({ 
-        res, 
-        status:400, 
-        view: 'dashboard', 
-        userSession: null, 
-        error:'User Session not available', 
-        data: []
-    });
-  }
   const data = await userModels.findById(userSession.id);
   if (!data) {
+    wlogs(req, 'error', 'Dashboard - Error',  409);
     return returnDashboard({ 
         res, 
         status:409, 
@@ -540,9 +590,10 @@ export const renderDashboard = async (req, res) => {
         data: []
     });
   }
+  wlogs(req, 'info', 'Dashboard - Successfull',  200);
   return returnDashboard({ 
         res, 
-        status:409, 
+        status:200, 
         view: 'dashboard', 
         userSession, 
         error:null, 
