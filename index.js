@@ -1,19 +1,23 @@
 import express from "express";
 const app = express();
 
-import { PORT } from "./config/env.js";
-import connectDB from "./config/db.js";
-import { userRoutes } from "./routes/userRoutes.js";
-import { swaggerDocs } from "./config/swagger.js";
+import { PORT } from "./config/env.js"; // port
+import connectDB from "./config/db.js"; // db
+import { userRoutes } from "./routes/userRoutes.js"; // user routes
+import { swaggerDocs } from "./config/swagger.js"; //  documentation
+import {wlogger, clientInfo } from './winstonLogger.js'; // logger 
+import {listLogs, readLogs, downloadLogs} from "./ReadLogs.js"; // read log
+import sessionMiddleware from './middlewares/sessionMiddleware.js'; // session
+import limiterMiddleware from "./middlewares/rateLimitMiddleware.js"; // limit the request in specifice duration
+import corsMiddleware from "./middlewares/corsMiddleware.js"; // cors
+import helmetMiddleware from './middlewares/helmetMiddleware.js'; // helment
+import compressionMiddleware from "./middlewares/compressionMiddleware.js"; // request response compresor 
 
-import sessionMiddleware from './middlewares/sessionMiddleware.js';
-import limiterMiddleware from "./middlewares/rateLimitMiddleware.js";
-import corsMiddleware from "./middlewares/corsMiddleware.js";
-import helmetMiddleware from './middlewares/helmetMiddleware.js';
-import compressionMiddleware from "./middlewares/compressionMiddleware.js";
+
 
 // make directory accessible for public use
 app.use(express.static("public"));
+app.use(express.static('logs'));
 
 // Connect to Databse
 connectDB();
@@ -53,16 +57,29 @@ app.use((req, res, next) => {
 });
 
  
- 
+// main route
 app.get('/', (req, res) => {
   res.redirect("/users")
-});
-app.get('/test', (req, res) => {
-  res.send('test from Express with Pino!');
 });
 
 // user routers
 app.use("/users",userRoutes);
+
+
+
+app.get('/test', (req, res) => {
+    const clientdata = clientInfo(req);
+    console.log(clientdata)
+    wlogger.info('Started msge here', {  ...clientdata });
+    wlogger.warn('warning msge here', {  ...clientdata });
+    wlogger.error('err msge here', {  ...clientdata });
+  res.send('test from Express with w!');
+});
+app.use('/logs-list', listLogs);
+app.use('/logs-report', readLogs);
+app.use('/logs-download', downloadLogs);
+ 
+
 
 // 404 page
 app.use((req, res, next) => {
@@ -71,7 +88,6 @@ app.use((req, res, next) => {
     message: "Oops! The page you're looking for doesn't exist."
   });
 });
- 
 
 // run to the server on the port
 app.listen(PORT, () => {

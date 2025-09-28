@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Logs for <%= date %></title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; }
+    th { background-color: #f2f2f2; }
+    pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+  </style>
+</head>
+<body>
+
+  <h2>
+    📄 Logs for <%= date %>
+    <a href="/logs-download?date=<%= date %>">Download</a>
+</h2>
+
+  <% if (logs.length === 0) { %>
+    <p>No logs found for this date.</p>
+  <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Level</th>
+          <th>Message</th>
+          <th>Metadata</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% logs.forEach(log => { %>
+            <tr>
+            <td><%= log.timestamp %></td>
+            <td><%= log.level  %></td>
+            <td><%= log.message %></td>
+            <td>
+            <% 
+                const { timestamp, level, message, ...meta } = log;
+                %>
+                <pre style="display: none;"><%= JSON.stringify(meta, null, 2) %></pre>
+                <ul>
+                    <li>UserId : <b><%= meta.userId %></b></li>
+                    <li>Role : <b><%= meta.role %></b></li>
+                    <li>Endpoint : <b><%= meta.endpoint %></b></li>
+                    <li>Method : <b><%= meta.method %></b></li>
+                    <li>IP : <b><%= meta.ip %></b></li>
+                    <li>Agent : <b><%= meta.userAgent %></b></li>
+                </ul>
+            </td>
+            
+            </tr>
+
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+</body>
+</html>
