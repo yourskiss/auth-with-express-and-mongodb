@@ -45,7 +45,7 @@ The app is designed with a focus on security, maintainability, and user experien
 <ul>
 <li>Structured logging with log-levels</li>
 <li>View logs by severity and date</li>
-<li>Download logs for auditing in cvc format</li>
+<li>Download logs for auditing in .csv format</li>
 </ul>
  
 <h3>📘 Architecture: MVC Pattern</h3>

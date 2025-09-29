@@ -195,9 +195,9 @@
 
 /**
  * @swagger
- * /users:
+ * /users/active:
  *   get:
- *     summary: Get list of all users (non-deleted)
+ *     summary: Get list of all active users 
  *     tags: [Users]
  *     parameters:
  *       - in: query
@@ -235,9 +235,9 @@
 
 /**
  * @swagger
- * /users/hidden:
+ * /users/deactive:
  *   get:
- *     summary: Get list of hidden / deleted users
+ *     summary: Get list of deactive users
  *     tags: [Users]
  *     parameters:
  *       - in: query
@@ -361,7 +361,7 @@
  * @swagger
  * /users/update/{id}:
  *   get:
- *     summary: Render user update form
+ *     summary: User details fetched
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -433,7 +433,7 @@
 
 /**
  * @swagger
- * /users/{id}/disable:
+ * /users/disable/{id}:
  *   post:
  *     summary: Soft-delete (disable) a user
  *     tags: [Users]
@@ -459,7 +459,7 @@
 
 /**
  * @swagger
- * /users/{id}/enable:
+ * /users/enable/{id}:
  *   post:
  *     summary: Re-enable a disabled user
  *     tags: [Users]
@@ -486,7 +486,7 @@
 
 /**
  * @swagger
- * /users/{id}:
+ * /users/delete/{id}:
  *   delete:
  *     summary: Delete a user completely
  *     tags: [Users]
@@ -550,18 +550,18 @@
 
 
 
-/**
+ 
+ /**
  * @swagger
  * /users/logout:
  *   get:
- *     summary: Logout current user
- *     tags: [Users]
+ *     summary: Logout the currently authenticated user
+ *     description: Destroys the user session and clears the session cookie. Redirects to the login page after successful logout.
+ *     tags:
+ *       - Authentication
  *     responses:
  *       302:
- *         description: Redirects to login page after logout
+ *         description: Logout successful, user redirected to login page
  *       500:
- *         description: Logout failed
- */
-
-
- 
+ *         description: Logout failed due to a server error
+ */ 
