@@ -10,8 +10,8 @@ import {
     handleAdd,
     renderUpdate, 
     handleUpdate,
-    getAll,
-    getHided,
+    usersActiveted,
+    usersDectiveted,
     getById,
     handleDisabled,
     handleEnabled,
@@ -44,8 +44,12 @@ router.get('/register', isGuest, renderRegister);
 router.post('/register', isGuest, handleRegister);
 router.get('/verify-registation', isGuest, renderVerifyRegister);
 router.post('/verify-registation', isGuest, handleVerifyRegister);
+
+router.get('/', isGuest, renderLogin);
 router.get('/login', isGuest, renderLogin);
 router.post('/login', isGuest, handleLogin);
+ 
+
 router.get('/password-forget', isGuest, renderPasswordForget);
 router.post('/password-forget', isGuest, handlePasswordForget);
 router.get('/password-otp', isGuest, renderPasswordOtp);
@@ -53,24 +57,31 @@ router.post('/password-otp', isGuest, handlePasswordOtp);
 router.get('/password-reset', isGuest, renderPasswordReset);
 router.post('/password-reset', isGuest, handlePasswordReset);
 
+
 // protected route
-router.get('/', isAuthenticated, checkRole(['admin', 'superadmin']), getAll);
-router.get('/hide', isAuthenticated, checkRole(['admin', 'superadmin']), getHided);
+router.get('/active', isAuthenticated, checkRole(['admin', 'superadmin']), usersActiveted);
+router.get('/deactive', isAuthenticated, checkRole(['admin', 'superadmin']), usersDectiveted);
 
 router.get('/create', isAuthenticated, checkRole(['admin', 'superadmin']), renderAdd);
 router.post('/create', isAuthenticated, checkRole(['admin', 'superadmin']), handleAdd);
 
 router.get('/detail/:id', isAuthenticated, checkRole(['admin', 'superadmin']), validateObjectId, getById);
+
 router.get('/disabled/:id', isAuthenticated, checkRole(['admin','superadmin']), validateObjectId, handleDisabled);
 router.get('/enabled/:id', isAuthenticated, checkRole(['admin','superadmin']), validateObjectId, handleEnabled);
+
 router.post('/delete/:id', isAuthenticated, checkRole(['admin','superadmin']), validateObjectId, handleDelete);
-router.get("/update/:id", checkRole(['user', 'admin', 'superadmin']), validateObjectId, renderUpdate);
-router.post("/update/:id", checkRole(['user', 'admin', 'superadmin']), uploadPP.single('profilepicture'), validateObjectId, handleUpdate);
+
+router.get("/update/:id", isAuthenticated, checkRole(['user', 'admin', 'superadmin']), validateObjectId, renderUpdate);
+router.post("/update/:id", isAuthenticated, checkRole(['user', 'admin', 'superadmin']), uploadPP.single('profilepicture'), validateObjectId, handleUpdate);
 
 router.get('/logout', isAuthenticated, checkRole(['user', 'admin', 'superadmin']), handleLogout);
+
 router.get('/password-change', isAuthenticated, checkRole(['user', 'admin', 'superadmin']), renderChangePassword);
 router.post('/password-change', isAuthenticated, checkRole(['user', 'admin', 'superadmin']), handleChangePassword);
+
 router.get('/dashboard', isAuthenticated, checkRole(['user', 'admin', 'superadmin']), renderDashboard);
 
 
-export const userRoutes = router;
+const userRoutes = router;
+export default userRoutes;

@@ -90,7 +90,7 @@ export const handleRegister = async (req, res) => {
         status:500, 
         view: 'register', 
         success: null, 
-         error: 'Internal Server Error. Please try again later.',
+         error: `Internal Server Error - ${err.message}`, 
         data
     });
   }
@@ -204,7 +204,7 @@ export const handleVerifyRegister = async (req, res) => {
         view: 'register-verify', 
         success: null, 
         info:null,
-        error: 'Internal server error',
+        error: `Internal Server Error - ${err.message}`, 
         data
     });
   }
@@ -298,7 +298,7 @@ export const handleLogin = async (req, res) => {
         status:500, 
         view: 'login', 
         success: null, 
-        error: 'Internal Server Error',
+        error: `Internal Server Error - ${err.message}`, 
         data
     });
   }
@@ -377,7 +377,7 @@ export const handlePasswordForget = async (req, res) => {
         status:500, 
         view: 'password-forget', 
         success: null, 
-        error: 'Internal server error',
+        error: `Internal Server Error - ${err.message}`, 
         email
     });
   }
@@ -478,7 +478,7 @@ export const handlePasswordOtp = async (req, res) => {
         view: 'password-otp', 
         success: null, 
         info: null,
-        error: 'Internal server error',
+        error: `Internal Server Error - ${err.message}`, 
         email
     });
   }
@@ -600,7 +600,7 @@ export const handlePasswordReset = async (req, res) => {
         view: 'password-reset', 
         success: null, 
         info: null,
-        error: 'Internal server error',
+        error: `Internal Server Error - ${err.message}`, 
         data
       });
   }

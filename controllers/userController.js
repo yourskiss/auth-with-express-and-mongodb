@@ -25,8 +25,7 @@ export const handleLogout = async (req, res) => {
 };
 
 
- 
-export const getAll = async (req, res) => {
+export const usersActiveted = async (req, res) => {
   const query = rollQuery(req.session.user.role, false); 
   const { page, sortBy, order, limit, skip, sort } = getPagination(req);
   let totalPages = 1;
@@ -43,7 +42,7 @@ export const getAll = async (req, res) => {
       return returnList({ 
         res, 
         status:204, 
-        view: 'list', 
+        view: 'list-active', 
         error: "No record found", 
         result:[], 
         currentPage:page, 
@@ -56,7 +55,7 @@ export const getAll = async (req, res) => {
      return returnList({ 
         res, 
         status:200, 
-        view: 'list', 
+        view: 'list-active', 
         error: null, 
         result, 
         currentPage:page, 
@@ -70,8 +69,8 @@ export const getAll = async (req, res) => {
     return returnList({ 
         res, 
         status:500, 
-        view: 'list', 
-        error: "Internal Server Error", 
+        view: 'list-active', 
+        error: `Internal Server Error - ${error.message}`, 
         result:[], 
         currentPage:page, 
         totalPages, 
@@ -81,9 +80,8 @@ export const getAll = async (req, res) => {
   }
 };
 
-
  
-export const getHided = async (req, res) => {
+export const usersDectiveted = async (req, res) => {
   const query = rollQuery(req.session.user.role, true); 
   const { page, sortBy, order, limit, skip, sort  } = getPagination(req);
   let totalPages = 1;
@@ -101,7 +99,7 @@ export const getHided = async (req, res) => {
       return returnList({ 
         res, 
         status:409, 
-        view: 'list-hide', 
+        view: 'list-deactive', 
         error: "No record found", 
         result:[], 
         currentPage:page, 
@@ -114,7 +112,7 @@ export const getHided = async (req, res) => {
      return returnList({ 
         res, 
         status:200, 
-        view: 'list-hide', 
+        view: 'list-deactive', 
         error: null, 
         result, 
         currentPage:page, 
@@ -127,8 +125,8 @@ export const getHided = async (req, res) => {
     return returnList({ 
         res, 
         status:500, 
-        view: 'list-hide', 
-        error: "Internal Server Error", 
+        view: 'list-deactive', 
+        error: `Internal Server Error - ${error.message}`, 
         result:[], 
         currentPage:page, 
         totalPages, 
@@ -171,7 +169,7 @@ export const getById = async (req, res) => {
         res, 
         status:500, 
         view: 'detail', 
-        error: 'Internal Server Error', 
+        error: `Internal Server Error - ${error.message}`, 
         result:[], 
         querydata
       });
@@ -251,7 +249,7 @@ export const handleAdd = async (req, res) => {
         status:500, 
         view: 'create', 
         success:null,
-        error: 'Internal Server Error. Please try again later.',
+        error: `Internal Server Error - ${err.message}`, 
         data
     });
   }
@@ -296,7 +294,7 @@ export const renderUpdate = async (req, res) => {
         status:500, 
         view: 'update', 
         success: null, 
-        error: 'Internal Server Error', 
+        error: `Internal Server Error - ${err.message}`, 
         result:datablank, 
         querydata:qd
     });
@@ -312,7 +310,7 @@ export const handleUpdate = async (req, res) => {
   const qd = { page, sortBy, order };
 
   let errorMsg = req.session.user.id === id
-    ? await validateUserInput({ fullname, mobile, email })
+    ? await validateUserInput({ fullname, mobile })
     : await validateUserInput({ fullname, mobile, email, role });
 
   if (Object.keys(errorMsg).length > 0) {
@@ -390,7 +388,7 @@ export const handleUpdate = async (req, res) => {
       status: 500, 
       view: 'update', 
       success: null, 
-      error: 'Internal Server Error', 
+      error: `Internal Server Error - ${err.message}`, 
       result: data, 
       querydata: qd 
     });
@@ -400,10 +398,10 @@ export const handleUpdate = async (req, res) => {
 
 export const handleDisabled = async (req, res) => {
   let { id } = req.params;
-  const { page, sortBy, order, limit, skip, sort } = getPagination(req);
+  const { page, sortBy, order } = getPagination(req);
   try {
     const isDisabled = await userModels.findByIdAndUpdate(
-      id,
+      { _id: id, isDeleted: false },
       { deletedBy:req.session.user.id, isDeleted: true, deletedAt: new Date(), otpTemp:null, otpExpiry:null },
       { new: true }
     );
@@ -411,29 +409,21 @@ export const handleDisabled = async (req, res) => {
       wlogs(req, 'error', 'Disable User - Not Disabled',  404);
       return res.status(404).send("Record not Disabled");
     }
- 
-    let remainingCount = await userModels.countDocuments({ isDeleted: false });
-    let totalPages = Math.ceil(remainingCount / limit);
-    if (page > totalPages && totalPages > 0) { page = totalPages; }
-    if (totalPages === 0) { page = 1; }
-
     wlogs(req, 'info', 'Disable User - Successfull',  302);
-    let redirectQuery = `?page=${page}&sortBy=${sortBy}&order=${order}`;
-    res.redirect(`/users/${redirectQuery}`);
- 
-  } catch (error) {
+    res.redirect(`/users/active?page=${page}&sortBy=${sortBy}&order=${order}`);
+  } catch (err) {
     wlogs(req, 'error', 'Disable User - Internal Server Error',  500);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: `Internal Server Error - ${err.message}` });
   }
 };
  
 export const handleEnabled = async (req, res) => {
 let { id } = req.params;
-const { page,  sortBy, order, limit, skip, sort } = getPagination(req);
+const { page,  sortBy, order  } = getPagination(req);
 
   try {
     const isEnabled = await userModels.findByIdAndUpdate(
-      id,
+      { _id: id, isDeleted: true },
       { deletedBy:null, isDeleted: false, deletedAt:null, otpTemp:null, otpExpiry:null },
       { new: true }
     );
@@ -441,25 +431,17 @@ const { page,  sortBy, order, limit, skip, sort } = getPagination(req);
       wlogs(req, 'error', 'Enable User - Not Enabled',  404);
       return res.status(404).send("Record not Enabled  ");
     }
- 
-    let remainingCount = await userModels.countDocuments({ isDeleted: true });
-    let totalPages = Math.ceil(remainingCount / limit);
-    if (page > totalPages && totalPages > 0) { page = totalPages; }
-    if (totalPages === 0) { page = 1; }
-
     wlogs(req, 'info', 'Enable User - Successfull',  302);
-    let redirectQuery = `?page=${page}&sortBy=${sortBy}&order=${order}`;
-    res.redirect(`/users/hide/${redirectQuery}`);
-
-  } catch (error) {
+    res.redirect(`/users/deactive?page=${page}&sortBy=${sortBy}&order=${order}`);
+  } catch (err) {
     wlogs(req, 'error', 'Disable User - Internal Server Error',  500);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: `Internal Server Error - ${err.message}` });
   }
 };
  
 export const handleDelete = async (req, res) => {
   const { id } = req.params;
-  const { page, sortBy, order, limit, skip, sort } = getPagination(req);
+  const { page, sortBy, order, limit  } = getPagination(req);
 
   try {
     const deleted = await userModels.findByIdAndDelete(id);
@@ -474,12 +456,11 @@ export const handleDelete = async (req, res) => {
     if (totalPages === 0) { page = 1;}
 
     wlogs(req, 'info', 'Delete User - Successfull',  302);
-    const redirectQuery = `?page=${page}&sortBy=${sortBy}&order=${order}`;
-    res.redirect(`/users/hide/${redirectQuery}`);
- 
-  } catch (error) {
+    res.redirect(`/users/deactive?page=${page}&sortBy=${sortBy}&order=${order}`);
+
+  } catch (err) {
     wlogs(req, 'error', 'Delete User - Internal Server Error',  500);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: `Internal Server Error - ${err.message}` });
   }
 };
  

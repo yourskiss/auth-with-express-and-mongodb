@@ -46,10 +46,12 @@
         <% } %>
     </div>
     <div>
-        <a href="/users/password-forget">Forgot Password?</a>      
+      <a href="/users/password-forget">Forgot Password?</a>
     </div>
-    
     <%- include('../partials/button', { text: 'Login' }) %>
+    <div style="text-align: right;">
+      Not have account <a href="/users/register">Create Account</a>
+    </div>
   </form>
 </section>
 <%- include('../partials/footer', { title: 'EMP Management System' }) %>

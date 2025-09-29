@@ -19,7 +19,7 @@
 
 <div class="sortcontrols">
   <h5>
-    Enabled <% if (user.role === 'superadmin') { %>Admin<% } else {  %>User<% } %> List <a href="/users">Click Here</a>
+    Enabled <% if (user.role === 'superadmin') { %>Admin<% } else {  %>User<% } %> List <a href="/users/active">Click Here</a>
   </h5>
   <% 
     const primary = sortBy === 'createdAt';

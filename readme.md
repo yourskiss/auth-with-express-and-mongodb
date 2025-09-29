@@ -26,21 +26,34 @@ The app is designed with a focus on security, maintainability, and user experien
 <li>OTP Verification before completing registration or password reset</li>
 <li>Create User (Admin functionality)</li>
 <li>Edit User profile details</li>
-<li>Delete User (Soft delete with activation/deactivation toggle)</li>
-<li>View All Users with pagination</li>
+<li>Delete and Soft Delete (activation/deactivation toggle)</li>
+<li>View All Users with pagination, sortBy, OrderBy</li>
 <li>View User by ID with detailed information</li>
 <li>Profile Picture Upload with resizing using Multer and Sharp</li>
 </ul>
 
-<h3>📄 API & Documentation - <strong>Swagger</strong></h3>
+<h3>📄 API & Documentation - <a href="https://session-auth-express-mongo.onrender.com/api-docs/" target="blank">Swagger</a></h3>
 <ul>
 <li>Interactive API documentation</li>
 <li>Auto-generated client/server SDKs</li>
 <li>Supports authentication headers</li>
 <li>Validates request/response schemas</li>
 </ul>
- 
 
+
+<h3>🔎 Logging & Monitoring - <strong>Winston Logger</strong></h3>
+<ul>
+<li>Structured logging with log-levels</li>
+<li>View logs by severity and date</li>
+<li>Download logs for auditing in cvc format</li>
+</ul>
+ 
+<h3>📘 Architecture: MVC Pattern</h3>
+<ul>
+<li><strong>Model:</strong> Mongoose schemas (User, OTP, etc.)</li>
+<li><strong>View:</strong> EJS templates for rendering UI</li>
+<li><strong>Controller:</strong> Express route handlers with logic for auth, user management, etc.</li>
+</ul>
 
 <h2>🧰 Tech Stack</h2>
 <h3>📦 Backend</h3>
@@ -80,15 +93,9 @@ The app is designed with a focus on security, maintainability, and user experien
 
 <h3>📦 Performance</h3>
 <ul>
-<li><strong>compression</strong> – Enables Gzip/Brotli compression for faster load times<li>
+<li><strong>compression</strong> – Enables Gzip/Brotli compression for faster load times</li>
 </ul>
 
-<h3>🔎 Logging & Monitoring - <strong>Winston Logger</strong></h3>
-<ul>
-<li>Structured logging with log-levels</li>
-<li>View logs by severity and date</li>
-<li>Download logs for auditing in cvc format</li>
-</ul>
 
 <h3>⚙️ Deployment Tools</h3>
 <ul>
@@ -97,17 +104,12 @@ The app is designed with a focus on security, maintainability, and user experien
 <li><strong>MongoDB Atlas</strong> – Managed NoSQL DB with high availability</li>
 </ul>
 
-<h3>📘 Architecture: MVC Pattern</h3>
-<ul>
-<li><strong>Model:</strong> Mongoose schemas (User, OTP, etc.)</li>
-<li><strong>View:</strong> EJS templates for rendering UI</li>
-<li><strong>Controller:</strong> Express route handlers with logic for auth, user management, etc.</li>
-</ul>
+
 
 <h3>🛡️ Future-Proofing</h3>
 <p>This application is designed for extensibility. Potential future integrations:</p>
 <ul>
-<li>JWT-based API authentication (already compatible)</li>
+<li>JWT-based API authentication (compatible)</li>
 <li>Audit logs</li>
 <li>Multi-factor authentication</li>
 <li>Email templates via MJML or SendGrid</li>

@@ -16,7 +16,7 @@
      <% if(querydata.page == '0' && querydata.sortBy == '0' && querydata.order == '0') { %> 
       <a href="/users/dashboard"  class="btn btn-back">Back</a>
     <% } else { %>
-      <a href="/users/?page=<%= querydata.page %>&sortBy=<%= querydata.sortBy %>&order=<%= querydata.order %>" class="btn btn-back">Back</a>
+      <a href="/users/active?page=<%= querydata.page %>&sortBy=<%= querydata.sortBy %>&order=<%= querydata.order %>" class="btn btn-back">Back</a>
     <% }   %>
   </h4>
   
@@ -36,7 +36,7 @@
           }, 2000);
         } else {
           setTimeout(() => {
-            window.location.href = `/users/?page=${page}&sortBy=${sortBy}&order=${order}`;
+            window.location.href = `/users/active?page=${page}&sortBy=${sortBy}&order=${order}`;
           }, 2000);
         }
       </script>
@@ -77,6 +77,8 @@
           <span class="error"><%= error.mobile %></span>
         <% } %>
     </div>
+
+    <% if(user.id !== result.id) { %>
     <div>
         <label>Email:</label>
         <input 
@@ -88,6 +90,8 @@
           <span class="error"><%= error.email %></span>
         <% } %>
     </div>
+    <% } %>
+
     <% if(user.id !== result.id) { %>
     <div> 
         <label>Role:</label>

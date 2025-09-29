@@ -80,9 +80,10 @@
           <span class="error"><%= error.confirmpassword %></span>
         <% } %>
     </div>
-    
-
     <%- include('../partials/button', { text: 'Submit' }) %>
+    <div style="text-align: right;">
+      <p>Alredy have account <a href="/users/login">Login</a></p> 
+    </div>
   </form>
 </section>
 <%- include('../partials/footer', { title: 'EMP Management System' }) %>

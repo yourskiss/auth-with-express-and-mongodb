@@ -18,7 +18,7 @@ const dailyRotateFileTransport = new winston.transports.DailyRotateFile({
   datePattern: 'YYYY-MM-DD',
   zippedArchive: true,
   maxSize: '20m',
-  maxFiles: '14d',
+  maxFiles: '2d',
 });
 
 const logger = winston.createLogger({
@@ -28,8 +28,8 @@ const logger = winston.createLogger({
     logFormat
   ),
   transports: [
-    new winston.transports.Console(),
-    dailyRotateFileTransport,
+  //  new winston.transports.Console(), // show logs in console
+    dailyRotateFileTransport, // // only write logs to file
   ],
 });
  
@@ -54,7 +54,7 @@ const clientInfo = (req) => {
           os: ua.os,
           browser: ua.browser,
           browserVersion: ua.version,
-          ip: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress, 
+          ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress, 
         //  userAgent: req.headers['user-agent'] || '',
         //  referer: req.headers['referer'] || '',
         //  origin: req.headers['origin'] || ''
@@ -64,7 +64,7 @@ const clientInfo = (req) => {
 
  
 
-export const winstonMiddleware = (req, res, next) => {
+ const winstonMiddleware = (req, res, next) => {
   const clientdata = clientInfo(req);
  // console.log("session in winstonMiddleware", req.session?.user)
   req.logger = {
@@ -77,5 +77,5 @@ export const winstonMiddleware = (req, res, next) => {
   next();
 };
 
-
+export default winstonMiddleware;
  
