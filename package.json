@@ -1,14 +1,15 @@
 {
-  "name": "auth-with-express-and-mongodb",
+  "name": "cred-and-session-based-authentication-using-express-and-mongodb",
   "version": "1.0.0",
-  "description": "auth using express and mongodb ",
+  "description": "Cred & Session-based authentication using Express & mongoDB",
   "keywords": [
     "mongoose",
     "mongoose schema",
     "mongoDB",
     "express.js",
     "cred",
-    "node.js"
+    "authentication",
+    "Session-based"
   ],
   "license": "ISC",
   "author": "K.Singh",
