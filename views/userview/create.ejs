@@ -23,7 +23,7 @@
       <aside class="successmessage"><%= success %></aside>
       <script>
         setTimeout(() => {
-          window.location.href = '/users';
+          window.location.href = '/users/active';
         }, 2000); 
       </script>
     <% } %>
@@ -77,10 +77,13 @@
         <select name="role">
           <option value="" disabled <%= !data.role ? 'selected' : '' %>>Select</option>
 
-          <% if(user.role === 'admin') { %> <option value="user" <%= data.role === 'user' ? 'selected' : '' %>>User</option> >User</option> <% } %>
-          <% if(user.role === 'superadmin') { %> <option value="admin" <%= data.role === 'admin' ? 'selected' : '' %>>Admin</option> >Admin</option> <% } %>
-
-          <!-- <option value="superadmin" <%= data.role === 'superadmin' ? 'selected' : '' %>>Superadmin</option> -->
+          <% if(user.role === 'admin') { %> 
+            <option value="user" <%= data.role === 'user' ? 'selected' : '' %>>User</option> >User</option> 
+          <% } %>
+          <% if(user.role === 'superadmin') { %> 
+             <option value="user" <%= data.role === 'user' ? 'selected' : '' %>>User</option> >User</option> 
+            <option value="admin" <%= data.role === 'admin' ? 'selected' : '' %>>Admin</option> >Admin</option> 
+          <% } %>
         </select>
         <% if (error && error.role) { %>
           <span class="error"><%= error.role %></span>

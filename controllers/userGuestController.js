@@ -7,7 +7,7 @@ import { wlogs } from '../utils/winstonLogger.js'; // logger
 import { 
    returnRegister, returnVR, returnLogin, returnPF, returnPasswordOTP, returnPR
 } from "../utils/renderHandler.js"; // retun handler
-
+import sendMSG from '../utils/twilio.js'; // sms
 
 
 export const renderRegister = async (req, res) => {
@@ -185,6 +185,7 @@ export const handleVerifyRegister = async (req, res) => {
     // temp data session clear
     req.session.tempUser = null; 
 
+    await sendMSG(process.env.TEST_NUMBER, `${fullname}, Thank your for Registation!`);
     wlogs(req, 'info', 'Verify Registation - Successfully', 201 );
     return returnVR({ 
         res, 
@@ -567,10 +568,10 @@ export const handlePasswordReset = async (req, res) => {
       { new: true }
     );
     if (!user) {
-      wlogs(req, 'warn', 'Reset Password - Not Found',  204);
+      wlogs(req, 'warn', 'Reset Password - Not Found',  200);
       return returnPR({ 
         res, 
-        status:204, 
+        status:200, 
         view: 'password-reset', 
         success: null, 
         info: null,
@@ -582,6 +583,7 @@ export const handlePasswordReset = async (req, res) => {
     req.session.fpStep1 = null;
     req.session.fpStep2 = null;
 
+      await sendMSG(process.env.TEST_NUMBER, `${user.fullname} your password successfully reset.`);
       wlogs(req, 'info', 'Reset Password - Reset Successfully',  200);
       return returnPR({ 
         res, 

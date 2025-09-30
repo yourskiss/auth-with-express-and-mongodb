@@ -97,9 +97,13 @@
         <label>Role:</label>
         <select name="role">
           <option value="" disabled <%= !result.role ? 'selected' : '' %>>Select</option>
-          <% if(user.role === 'admin') { %> <option value="user" <%= result.role === 'user' ? 'selected' : '' %> >User</option> <% } %>
-          <% if(user.role === 'superadmin') { %> <option value="admin" <%= result.role === 'admin' ? 'selected' : '' %> >Admin</option> <% } %>
-          <!-- <option value="superadmin" <%= result.role === 'superadmin' ? 'selected' : '' %>>Superadmin</option> -->
+          <% if(user.role === 'admin') { %> 
+            <option value="user" <%= result.role === 'user' ? 'selected' : '' %> >User</option> 
+          <% } %>
+          <% if(user.role === 'superadmin') { %> 
+            <option value="user" <%= result.role === 'user' ? 'selected' : '' %> >User</option> 
+            <option value="admin" <%= result.role === 'admin' ? 'selected' : '' %> >Admin</option> 
+          <% } %>
         </select>
         <% if (error && error.role) { %>
           <span class="error"><%= error.role %></span>

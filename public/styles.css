@@ -32,7 +32,7 @@ body { font-family: Arial, Helvetica, sans-serif; }
 .sortcontrols p a.active { color: #ec0808; }
 
 .record_list { border: 1px solid; padding:10px 20px; margin-bottom: 10px; width: 100%; display: flex; justify-content:flex-start; align-items: center; gap:20px; }
-.record_list.disabled { background: #ddd; border-color: #999; }
+.record_list.disabled { background: #efefef; border-color: #999; }
 .record_list.enabled { background: #fff; border-color: #ccc;  }
 .record_list img { width: 100px; border: 1px solid #ddd; padding: 5px; }
 .record_list p {  text-align: left; color: #7c7b7b; font-size:16px;   }

@@ -55,6 +55,9 @@ The app is designed with a focus on security, maintainability, and user experien
 <li><strong>Controller:</strong> Express route handlers with logic for auth, user management, etc.</li>
 </ul>
 
+
+
+
 <h2>🧰 Tech Stack</h2>
 <h3>📦 Backend</h3>
 <ul>
@@ -81,9 +84,10 @@ The app is designed with a focus on security, maintainability, and user experien
 </ul>
 
 <h3>📧 Email & OTP</h3>
-<p>
-<strong>Nodemailer</strong> – SMTP-based email sending (e.g., for OTPs)
-</p>
+<ul>
+<li><strong>Nodemailer</strong> – SMTP-based email sending (e.g., for OTPs)
+<li><strong>Twilio</strong> –  SMS Notification on success registation/password changed/forget password. (trial account - self only)</h3>
+</ul>
 
 <h3>📁 File Upload & Image Processing</h3>
 <ul>

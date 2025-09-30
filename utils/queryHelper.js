@@ -5,7 +5,7 @@ export const rollQuery = (role, isDeleted) => {
     query.role = { $nin: ['superadmin', 'admin'] };
   }
   if (role === 'superadmin') {
-    query.role = { $nin: ['superadmin', 'user'] };
+    query.role = { $nin: ['superadmin'] };
   } 
 
   return query;

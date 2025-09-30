@@ -12,7 +12,7 @@ import corsMiddleware from "./middlewares/corsMiddleware.js"; // cors
 import helmetMiddleware from './middlewares/helmetMiddleware.js'; // helment
 import compressionMiddleware from "./middlewares/compressionMiddleware.js"; // request response compresor 
 import winstonMiddleware from "./middlewares/winstonMiddleware.js";  // logger  
-import {reportLogs, downloadLogs} from "./ReadLogs.js"; // read logger
+import {reportLogs, downloadLogs} from  "./utils/logs.js" // read logger
 
 // make directory accessible for public use
 app.use(express.static("public"));

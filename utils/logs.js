@@ -8,14 +8,15 @@ const __dirname = dirname(__filename);
 
 
 export const reportLogs = async (req, res) => {
-  const role = req.session?.user?.role;
-  if (!req.session?.user && !['admin', 'superadmin'].includes(role)) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
+  // const role = req.session?.user?.role;
+  // if (!req.session?.user && !['admin', 'superadmin'].includes(role)) {
+  //   return res.status(403).json({ error: 'Access denied' });
+  // }
 
   const date = req.query.date || new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const logsDir = path.join(__dirname, './logs');
+  const logsDir = path.join(__dirname, './../logs');
   const logFilePath = path.join(logsDir, `app-${date}.log`);
+
 
   try {
     // ✅ Get list of log files in the directory
@@ -71,13 +72,14 @@ export const reportLogs = async (req, res) => {
 
 
 export const downloadLogs = async (req, res) => {
-  const role = req.session?.user?.role;
-  if (!req.session?.user && !['admin', 'superadmin'].includes(role)) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
+  // const role = req.session?.user?.role;
+  // if (!req.session?.user && !['admin', 'superadmin'].includes(role)) {
+  //   return res.status(403).json({ error: 'Access denied' });
+  // }
 
   const date = req.query.date || new Date().toISOString().slice(0, 10);
-  const logFilePath = path.join(__dirname, `./logs/app-${date}.log`);
+  const logFilePath = path.join(__dirname, `./../logs/app-${date}.log`);
+  
 
   if (!fs.existsSync(logFilePath)) {
     return res.status(404).json({ error: `Log file for ${date} not found.` });

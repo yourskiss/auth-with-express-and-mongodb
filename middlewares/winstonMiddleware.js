@@ -18,7 +18,7 @@ const dailyRotateFileTransport = new winston.transports.DailyRotateFile({
   datePattern: 'YYYY-MM-DD',
   zippedArchive: true,
   maxSize: '20m',
-  maxFiles: '2d',
+  maxFiles: '14d',
 });
 
 const logger = winston.createLogger({
@@ -37,7 +37,6 @@ const logger = winston.createLogger({
 // Capture client info
 const clientInfo = (req) => {
     req.requestId = uuidv4();
-    const sessionID = req.session?.user?.id ? true : false;
     const ua = req.useragent || {};
      return {
           requestId: req.requestId,
@@ -48,7 +47,7 @@ const clientInfo = (req) => {
         //  params: req.params || {}, 
           userId: req.session?.user?.id || 'guest',
           role: req.session?.user?.role || 'guest',
-          isAuthenticated: sessionID,
+          isAuthenticated: req.session.user ? true : false,
           device: ua.isMobile ? 'Mobile' : ua.isTablet ? 'Tablet' : 'Desktop',
           platform: ua.platform,
           os: ua.os,

@@ -8,6 +8,7 @@ import {
 } from "../utils/renderHandler.js";
 import { processProfileImage } from '../utils/uploadProcessor.js';
 import { wlogs } from '../utils/winstonLogger.js'; // logger
+import sendMSG from '../utils/twilio.js'; // sms
 
 
 
@@ -38,10 +39,10 @@ export const usersActiveted = async (req, res) => {
                   .skip(skip)
                   .limit(limit);
     if (!result || result.length === 0) {
-      wlogs(req, 'warn', 'Active User List - Successfull',  204);
+      wlogs(req, 'warn', 'Active List - Successfull',  200);
       return returnList({ 
         res, 
-        status:204, 
+        status:200, 
         view: 'list-active', 
         error: "No record found", 
         result:[], 
@@ -51,7 +52,7 @@ export const usersActiveted = async (req, res) => {
         order 
       });
     }
-     wlogs(req, 'info', 'Active User List - Successfull',  200);
+     wlogs(req, 'info', 'Active List - Successfull',  200);
      return returnList({ 
         res, 
         status:200, 
@@ -65,7 +66,7 @@ export const usersActiveted = async (req, res) => {
       });
       
   } catch (error) {
-    wlogs(req, 'error', 'Active User List - Internal Server Error',  500);
+    wlogs(req, 'error', 'Active List - Internal Server Error',  500);
     return returnList({ 
         res, 
         status:500, 
@@ -95,10 +96,10 @@ export const usersDectiveted = async (req, res) => {
                   .skip(skip)
                   .limit(limit);
     if (!result || result.length === 0) {
-      wlogs(req, 'error', 'Inactive User List - Not Found', 409);
+      wlogs(req, 'error', 'Inactive List - Not Found', 200);
       return returnList({ 
         res, 
-        status:409, 
+        status:200, 
         view: 'list-deactive', 
         error: "No record found", 
         result:[], 
@@ -108,7 +109,7 @@ export const usersDectiveted = async (req, res) => {
         order 
       });
     }
-    wlogs(req, 'info', 'Inactive User List - Success', 200);
+    wlogs(req, 'info', 'Inactive List - Success', 200);
      return returnList({ 
         res, 
         status:200, 
@@ -121,7 +122,7 @@ export const usersDectiveted = async (req, res) => {
         order 
       });
   } catch (error) {
-    wlogs(req, 'error', 'Inactive User List - Internal Server Error', 500);
+    wlogs(req, 'error', 'Inactive List - Internal Server Error', 500);
     return returnList({ 
         res, 
         status:500, 
@@ -534,6 +535,7 @@ export const handleChangePassword = async (req, res) => {
         data
       });
     }
+    await sendMSG(process.env.TEST_NUMBER, `${result.fullname} your Password Change Successfully`);
     wlogs(req, 'info', 'Change Password - Successfully',  200);
     return returnChangePassword({ 
         res, 

@@ -9,7 +9,7 @@
 <section class="sectionmin">
 
   <h1 class="mainheading">
-    <% if (user.role === 'superadmin') { %>Admin List<% } else {  %>User List <% } %>
+    Active List
   </h1>
  
  
@@ -19,7 +19,7 @@
 
 <div class="sortcontrols">
   <h5>
-    Disabled <% if (user.role === 'superadmin') { %>Admin<% } else {  %>User<% } %> List <a href="/users/deactive">Click Here</a>
+    Deactive  List <a href="/users/deactive">Click Here</a>
   </h5>
   <% 
     const primary = sortBy === 'createdAt';
