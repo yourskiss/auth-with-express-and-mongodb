@@ -10,7 +10,7 @@
       <% if (user.role === 'superadmin') { %>Admin Details<% } else {  %>User Details<% } %>
     </h1>
     <p class="backto">
-      <a href="/users/active<%= querydata %>" class="btn btn-back">Back</a>
+      <a href="/users/list<%= querydata %>" class="btn btn-back">Back</a>
     </p>
 
     <% if (error) { %>

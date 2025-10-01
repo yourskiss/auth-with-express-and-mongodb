@@ -25,11 +25,13 @@ export const handleLogout = async (req, res) => {
   });
 };
 
-export const usersActiveted = async (req, res) => {
-  const { role, page, sortBy, order, limit, skip, sort } = getPagination(req);
+
+export const usersList = async (req, res) => {
+  const { type, role, page, sortBy, order, limit, skip, sort } = getPagination(req);
   let totalPages = 1;
   const isSuperAdmin = req.session.user.role === 'superadmin';
-  let  query = rollQuery(isSuperAdmin, role, false);
+  let isDeleted = (type === 'active') ? false : (type === 'deactive') ? true : undefined; // undefined = both
+  let  query = rollQuery(isSuperAdmin, role, isDeleted);
   try {
     const totalCount = await userModels.countDocuments(query);
     totalPages = Math.ceil(totalCount / limit);
@@ -40,10 +42,11 @@ export const usersActiveted = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
+    wlogs(req, 'info', 'User List - Fetched', 200);
     return returnList({
       res,
       status: 200,
-      view: 'list-active',
+      view: 'list',
       error: null,
       result,
       currentPage: page,
@@ -51,80 +54,36 @@ export const usersActiveted = async (req, res) => {
       sortBy,
       order,
       role,
+      type,
       countrecord:totalCount
     });
 
-  } catch (error) {
+  } catch (err) {
+    wlogs(req, 'error', 'User List - Internal Server Error', 500);
     return returnList({
       res,
       status: 500,
-      view: 'list-active',
-      error: `Internal Server Error - ${error.message}`,
+      view: 'list',
+      error: `Internal Server Error - ${err.message}`,
       result: [],
       currentPage: page,
       totalPages,
       sortBy,
       order,
       role,
+      type,
       countrecord:totalCount
     });
   }
 };
 
-
  
- 
-export const usersDectiveted = async (req, res) => {
-  const { role, page, sortBy, order, limit, skip, sort } = getPagination(req);
-  let totalPages = 1;
-  const isSuperAdmin = req.session.user.role === 'superadmin';
-  let  query = rollQuery(isSuperAdmin, role, true);
-  try {
-    const totalCount = await userModels.countDocuments(query);
-    totalPages = Math.ceil(totalCount / limit);
-
-    const result = await userModels.find(query)
-      .collation({ locale: 'en', strength: 1 })
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
-
-    return returnList({
-      res,
-      status: 200,
-      view: 'list-deactive',
-      error: null,
-      result,
-      currentPage: page,
-      totalPages,
-      sortBy,
-      order,
-      role,
-      countrecord:totalCount
-    });
-
-  } catch (error) {
-    return returnList({
-      res,
-      status: 500,
-      view: 'list-deactive',
-      error: `Internal Server Error - ${error.message}`,
-      result: [],
-      currentPage: page,
-      totalPages,
-      sortBy,
-      order,
-      role,
-      countrecord:totalCount
-    });
-  }
-};
 
 
 export const getById = async (req, res) => {
   const { id } = req.params;
-  const { role, page, sortBy, order } = req.query;
-  const querydata = `?role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`;
+  const { type, role, page, sortBy, order } = req.query;
+  const querydata = `?type=${type}&role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`;
   try {
     const result = await userModels.findById(id);
     if (!result) {
@@ -166,8 +125,8 @@ export const getById = async (req, res) => {
 
 export const renderUpdate = async (req, res) => {
   const { id } = req.params;
-  const { role, page, sortBy, order } = req.query;
-  const qd = { role, page, sortBy, order };
+  const { type, role, page, sortBy, order } = req.query;
+  const qd = { type, role, page, sortBy, order };
   const datablank = { id, fullname:'', email:'', mobile:'', role:'' };
   try {
     const result = await userModels.findById(id);
@@ -209,11 +168,11 @@ export const renderUpdate = async (req, res) => {
 
 
 export const handleUpdate = async (req, res) => {
-  const { roletype, page, sortBy, order, fullname, email, mobile, role } = req.body;
+  const { usertype, roletype, page, sortBy, order, fullname, email, mobile, role } = req.body;
   const img = req.file;
   const { id } = req.params;
   const data = { id, fullname, email, mobile, role };
-  const qd = { role:roletype, page, sortBy, order };
+  const qd = { type:usertype, role:roletype, page, sortBy, order };
 
   let errorMsg = req.session.user.id === id
     ? await validateUserInput({ fullname, mobile })
@@ -304,7 +263,7 @@ export const handleUpdate = async (req, res) => {
 
 export const handleDisabled = async (req, res) => {
   let { id } = req.params;
-  const { role, page, sortBy, order } = getPagination(req);
+  const { type, role, page, sortBy, order } = getPagination(req);
   try {
     const isDisabled = await userModels.findByIdAndUpdate(
       { _id: id, isDeleted: false },
@@ -316,7 +275,7 @@ export const handleDisabled = async (req, res) => {
       return res.status(404).send("Record not Disabled");
     }
     wlogs(req, 'info', 'Disable User - Successfull',  302);
-    res.redirect(`/users/active?role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`);
+    res.redirect(`/users/list?type=${type}&role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`);
   } catch (err) {
     wlogs(req, 'error', 'Disable User - Internal Server Error',  500);
     res.status(500).json({ error: `Internal Server Error - ${err.message}` });
@@ -325,7 +284,7 @@ export const handleDisabled = async (req, res) => {
  
 export const handleEnabled = async (req, res) => {
 let { id } = req.params;
-const { role, page, sortBy, order  } = getPagination(req);
+const { type, role, page, sortBy, order  } = getPagination(req);
 
   try {
     const isEnabled = await userModels.findByIdAndUpdate(
@@ -338,7 +297,7 @@ const { role, page, sortBy, order  } = getPagination(req);
       return res.status(404).send("Record not Enabled  ");
     }
     wlogs(req, 'info', 'Enable User - Successfull',  302);
-    res.redirect(`/users/deactive?role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`);
+    res.redirect(`/users/list?type=${type}&role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`);
   } catch (err) {
     wlogs(req, 'error', 'Disable User - Internal Server Error',  500);
     res.status(500).json({ error: `Internal Server Error - ${err.message}` });
@@ -347,7 +306,7 @@ const { role, page, sortBy, order  } = getPagination(req);
  
 export const handleDelete = async (req, res) => {
   const { id } = req.params;
-  const { role, page, sortBy, order, limit  } = getPagination(req);
+  const { type, role, page, sortBy, order, limit  } = getPagination(req);
 
   try {
     const deleted = await userModels.findByIdAndDelete(id);
@@ -362,7 +321,7 @@ export const handleDelete = async (req, res) => {
     if (totalPages === 0) { page = 1;}
 
     wlogs(req, 'info', 'Delete User - Successfull',  302);
-    res.redirect(`/users/deactive?role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`);
+    res.redirect(`/users/list?type=${type}&role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`);
 
   } catch (err) {
     wlogs(req, 'error', 'Delete User - Internal Server Error',  500);

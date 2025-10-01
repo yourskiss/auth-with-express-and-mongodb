@@ -1,3 +1,4 @@
+import { type } from "os";
 
 export const returnRegister = ({ res, status, view, success, error, data }) => {
   res.status(status).render(`userview/${view}`, {
@@ -54,7 +55,7 @@ export const returnPR= ({ res, status, view, success, info, error, data }) => {
 
 
 
-export const returnList = ({ res, status,  view, error, result, currentPage, totalPages, sortBy, order, role, countrecord }) => {
+export const returnList = ({ res, status,  view, error, result, currentPage, totalPages, sortBy, order, role, type, countrecord }) => {
   res.status(status).render(`userview/${view}`, {
     error,
     status,
@@ -64,6 +65,7 @@ export const returnList = ({ res, status,  view, error, result, currentPage, tot
     sortBy,
     order,
     role,
+    type,
     countrecord
   });
 };

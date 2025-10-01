@@ -10,8 +10,7 @@ import {
     handleAdd,
     renderUpdate, 
     handleUpdate,
-    usersActiveted,
-    usersDectiveted,
+    usersList,
     getById,
     handleDisabled,
     handleEnabled,
@@ -49,7 +48,6 @@ router.get('/', isGuest, renderLogin);
 router.get('/login', isGuest, renderLogin);
 router.post('/login', isGuest, handleLogin);
  
-
 router.get('/password-forget', isGuest, renderPasswordForget);
 router.post('/password-forget', isGuest, handlePasswordForget);
 router.get('/password-otp', isGuest, renderPasswordOtp);
@@ -59,9 +57,8 @@ router.post('/password-reset', isGuest, handlePasswordReset);
 
 
 // protected route
-router.get('/active', isAuthenticated, checkRole(['admin', 'superadmin']), usersActiveted);
-router.get('/deactive', isAuthenticated, checkRole(['admin', 'superadmin']), usersDectiveted);
-
+router.get('/list', isAuthenticated, checkRole(['admin', 'superadmin']), usersList);
+ 
 router.get('/create', isAuthenticated, checkRole(['admin', 'superadmin']), renderAdd);
 router.post('/create', isAuthenticated, checkRole(['admin', 'superadmin']), handleAdd);
 

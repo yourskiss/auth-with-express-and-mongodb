@@ -1,7 +1,12 @@
  
  
+
 export const rollQuery = (isSuperAdmin, role, isDeleted) => {
-  let query = { isDeleted };
+  let query = {};
+
+  if (typeof isDeleted === 'boolean') {
+    query.isDeleted = isDeleted;
+  }
 
   if (role) {
     if (role === 'admin' && !isSuperAdmin) {

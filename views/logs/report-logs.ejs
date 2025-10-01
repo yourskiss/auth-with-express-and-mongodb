@@ -12,14 +12,27 @@
   <h1  class="mainheading">📄 Report Logs</h1>
 
 <section class="logscontrol">
-  <form  id="logForm" method="get" action="/report-logs">
-    <label for="dateSelect">Select Date:</label>
-    <select id="dateSelect" name="date" onchange="document.getElementById('logForm').submit()">
-      <% availableDates?.forEach(d => { %>
-        <option value="<%= d %>" <%= d === date ? 'selected' : '' %>><%= d %></option>
-      <% }); %>
-    </select>
-  </form>
+  <div style="display: flex; justify-content: flex-start; column-gap: 20px;">
+    <form  id="logFormByDate" method="get" action="/report-logs">
+      <label for="dateSelect">By Date:</label>
+      <select id="dateSelect" name="date" onchange="document.getElementById('logFormByDate').submit()">
+        <% availableDates?.forEach(d => { %>
+          <option value="<%= d %>" <%= d === date ? 'selected' : '' %>><%= d %></option>
+        <% }); %>
+      </select>
+    </form>
+    <form id="logFormByLavel" method="GET" action="/report-logs">
+      <input type="hidden" name="date" value="<%= date %>" />
+      <label for="level">By Level:</label>
+      <select name="level" id="level" onchange="document.getElementById('logFormByLavel').submit()">
+        <option value="" <%= levelFilter === '' ? 'selected' : '' %>>All</option>
+        <option value="info" <%= levelFilter === 'info' ? 'selected' : '' %>>Info</option>
+        <option value="warn" <%= levelFilter === 'warn' ? 'selected' : '' %>>Warn</option>
+        <option value="error" <%= levelFilter === 'error' ? 'selected' : '' %>>Error</option>
+      </select>
+    </form>
+  </div>
+
   <% if (logs.length !== 0) { %>
   <p>
     <a href="/download-logs?date=<%= date %>">Download Report </a>
@@ -28,7 +41,11 @@
 </section>
 
   <% if (logs.length === 0) { %>
-    <p class="logsNotFound">No logs found for <b><%= date %></b></p>
+      <% if (levelFilter) { %>
+        <p class="logsNotFound">No <b><%= levelFilter.toUpperCase() %></b> logs found for <b><%= date %></b>.</p>
+      <% } else { %>
+        <p class="logsNotFound">No logs found for <b><%= date %></b>.</p>
+      <% } %>
   <% } else { %>
     <table class="logstable">
       <thead>

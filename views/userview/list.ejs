@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>All User List</title>
+
+</head>
+<body>
+<%- include('../partials/header') %>
+<section class="sectionmin">
+
+  <h1 class="mainheading">
+    <span style="text-transform: capitalize;"><%= type %></span> <span style="text-transform: capitalize;"><%= role %></span> List
+  </h1>
+  <p class="maintext">
+   Total Records:  <%= countrecord %>
+  </p>
+  <% if (error) { %>
+      <h6 class="mainError"><%= error %></h6>
+  <% }   %>
+
+<section style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin: 10px 0 20px 0;">
+  <div class="logscontrol" style="justify-content: flex-start; column-gap: 20px;">
+    <form method="GET">
+      <label for="usertype">Type</label>
+      <select id="usertype" name="usertype" onchange="changeUserType()">
+        <option value="all" <%= type === 'all' || !type ? 'selected' : '' %>>All</option>
+        <option value="active" <%= type === 'active'  ? 'selected' : '' %>>Active</option>
+        <option value="deactive" <%= type === 'deactive' ? 'selected' : '' %>>Deactive </option>
+      </select>
+    </form>
+    <form method="GET">
+      <label for="userrole">Role</label>
+      <select id="userrole" name="userrole"  onchange="changeUserRoll()">
+        <option value="user" <%= role === 'user' || !role ? 'selected' : '' %>>User</option>
+        <% if(user.role === 'superadmin') { %> 
+          <option value="admin" <%= role === 'admin' ? 'selected' : '' %>>Admin</option>
+        <% } %>
+      </select>
+    </form>
+
+  </div>
+  <div class="sortcontrols" style="justify-content: flex-end">
+    <% 
+      const primary = sortBy === 'createdAt';
+      const secondary = sortBy === 'fullname'; 
+    %>
+    <p>
+      <b>Sort : &nbsp;</b>
+      <a href="?type=<%=type %>&role=<%= role %>&page=1&sortBy=fullname&order=<%= secondary && order === 1 ? 'desc' : 'asc' %>" class="<%= secondary ? 'active' : '' %>">
+      By Name <%= secondary ? (order === 1 ? '▲' : '▼') : ' ' %>
+      </a>
+      &nbsp; 
+      <a href="?type=<%=type %>&role=<%= role %>&page=1&sortBy=createdAt&order=<%= primary && order === 1 ? 'desc' : 'asc' %>" class="<%= primary ? 'active' : '' %>">
+        Created By <%= primary ? (order === 1 ? '▲' : '▼') : ' ' %>
+      </a>
+      &nbsp; 
+    </p>
+  </div>
+</section>
+
+<% if(countrecord == '0') {  %>
+  <h2 class="notfoundmsg">
+    No Record Found
+  </h2>
+<% } else {  %>
+  <div>
+    <% result.forEach((res) => { %>
+        <% if(res.isDeleted) { %>
+            <div class="record_list disabled" >
+        <% } else { %>
+            <div class="record_list enabled" >
+        <% } %>
+            <aside>
+                <% if (res.profilepicture && res.profilepicture.url) { %>
+                    <img src="<%= res.profilepicture.url %>" alt="Profile Photo" />
+                <% } %>
+                <p>
+                    <strong>Full Name:</strong> <%= res.fullname %> || <strong>Role:</strong> <%= res.role %><br> 
+                    <strong>Mobile:</strong> <%= res.mobile %> || <strong>Email:</strong> <%= res.email %><br>
+                    <strong>Created At:</strong> <%= new Date(res.createdAt).toLocaleString() %><br>
+                    <% 
+                    const createdDate = new Date(res.createdAt);
+                    const updatedDate = new Date(res.updatedAt);
+                    if (createdDate.getTime() < updatedDate.getTime()) { %>
+                    <strong>Updated At:</strong> <%= new Date(res.updatedAt).toLocaleString() %><br>
+                    <% } %>
+                </p>
+            </aside>
+            <aside>
+                <a href="/users/detail/<%= res.id %>?type=<%= type %>&role=<%= role %>&page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn">View </a>  
+                <a href="/users/update/<%= res.id %>?type=<%= type %>&role=<%= role %>&page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn">Update </a>  
+                
+                <% if(res.isDeleted) { %>
+                    <a href="/users/enabled/<%= res.id %>?type=<%= type %>&role=<%= role %>&page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn btn-enabled" onclick="return confirm('Are you sure you want to Enabled this?')"> Enabled</a>   
+                <% } else { %>
+                    <a href="/users/disabled/<%= res.id %>?type=<%= type %>&role=<%= role %>&page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn btn-disabled" onclick="return confirm('Are you sure you want to disabled this ?')">Disabled</a>
+                <% } %>
+
+                <form action="/users/delete/<%= res._id %>" method="POST" style="display: inline; margin: 0; padding: 0; width: auto;" onsubmit="return confirm('Are you sure you want to delete this?')">
+                    <input type="hidden" name="type" value="<%= type || 'all' %>">
+                    <input type="hidden" name="role" value="<%= role || 'user' %>">
+                  <input type="hidden" name="page" value="<%= currentPage || 1 %>">
+                  <input type="hidden" name="sortBy" value="<%= sortBy || 'createdAt' %>">
+                  <input type="hidden" name="order" value="<%= order === 1 ? 'asc' : 'desc' %>">
+                  <button type="submit" class="btn btn-delete">Delete</button>
+                </form>
+            </aside>
+        </div>
+    <% }) %>
+  </div>
+ <% } %>
+    
+ <% if (totalPages > 1) { %>
+<div class="pagingcontrols">
+  <% if (currentPage > 1) { %>
+    <a href="?type=<%= type %>&role=<%= role %>&page=<%= currentPage - 1 %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>">Previous</a>
+  <% } %>
+
+  <% for (let i = 1; i <= totalPages; i++) { %>
+    <% if (i === currentPage) { %>
+      <b><%= i %></b>
+    <% } else { %>
+      <a href="?type=<%= type %>&role=<%= role %>&page=<%= i %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>"><%= i %></a>
+    <% } %>
+  <% } %>
+
+  <% if (currentPage < totalPages) { %>
+    <a href="?type=<%= type %>&role=<%= role %>&page=<%= currentPage + 1 %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>">Next</a>
+  <% } %>
+</div>
+ <% } %>
+
+
+ 
+</section>
+<%- include('../partials/footer', { title: 'EMP Management System' }) %>
+
+<script>
+    let sortBy_q = "<%= sortBy || 'createdAt' %>"
+    let order_q = "<%= order === 1 ? 'asc' : 'desc' %>"
+
+   function changeUserType() {
+    const userRole = "<%= role %>"; 
+    const selected = document.getElementById('usertype');
+    const type = selected.value;
+    window.location.href = `/users/list?type=${type}&role=${userRole}&page=1&sortBy=${sortBy_q}&order=${order_q}`;
+  }
+  function changeUserRoll() {
+    const userType = "<%= type %>"; 
+    const selected = document.getElementById('userrole');
+    const role = selected.value;
+    window.location.href = `/users/list?type=${userType}&role=${role}&page=1&sortBy=${sortBy_q}&order=${order_q}`;
+  }
+</script>
+</body>
+</html>

@@ -32,7 +32,7 @@ body { font-family: Arial, Helvetica, sans-serif; }
 .sortcontrols p a { text-decoration: none; color: #999999; }
 .sortcontrols p a.active { color: #ec0808; }
 
-.record_list { border: 1px solid; padding:10px 20px; margin-bottom: 10px; width: 100%; display: flex; justify-content:flex-start; align-items: center; gap:20px; }
+.record_list { border: 1px solid; padding:10px 20px; margin-bottom: 10px; width: 100%; display: flex; justify-content:space-between; align-items: center; gap:20px; }
 .record_list.disabled { background: #efefef; border-color: #999; }
 .record_list.enabled { background: #fff; border-color: #ccc;  }
 .record_list img { width: 100px; border: 1px solid #ddd; padding: 5px; }
@@ -64,6 +64,8 @@ body { font-family: Arial, Helvetica, sans-serif; }
 .btn-delete:hover {  background-color: #9c0010;}
 .btn-disabled { background-color: #585858; }
 .btn-disabled:hover {  background-color: #c82333;}
+.btn-enabled { background-color: #00ff00;  }
+.btn-enabled:hover { background-color: #c82333;  }
 .btn-update { margin: 0 0 10px 10px;  padding: 10px 25px; float: right; }
 .btn-back { margin:0px 0 10px 0;  padding: 8px 20px; float: left; background-color: #585858; color: #fff;  }
 .btn-back:hover { background-color: #f34a5b; }

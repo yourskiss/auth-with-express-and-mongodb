@@ -6,6 +6,7 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+ 
 
 export const reportLogs = async (req, res) => {
   // const role = req.session?.user?.role;
@@ -13,25 +14,24 @@ export const reportLogs = async (req, res) => {
   //   return res.status(403).json({ error: 'Access denied' });
   // }
 
+
   const date = req.query.date || new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const levelFilter = req.query.level?.toLowerCase(); // 'error', 'warn', 'info', etc.
+
   const logsDir = path.join(__dirname, './../logs');
   const logFilePath = path.join(logsDir, `app-${date}.log`);
 
-
   try {
-    // ✅ Get list of log files in the directory
     const files = fs.readdirSync(logsDir);
 
-    // ✅ Extract dates from filenames like app-YYYY-MM-DD.log
     const availableDates = files
       .filter(file => file.startsWith('app-') && file.endsWith('.log'))
       .map(file => file.replace('app-', '').replace('.log', ''))
-      .sort((a, b) => b.localeCompare(a)); // ascending order
+      .sort((a, b) => b.localeCompare(a));
 
-    // ✅ Read the selected log file
     const logData = fs.readFileSync(logFilePath, 'utf8');
 
-    const logs = logData
+    let logs = logData
       .split('\n')
       .filter(line => line.trim())
       .map(line => {
@@ -39,7 +39,7 @@ export const reportLogs = async (req, res) => {
         if (parts.length < 4) return { raw: line };
 
         const timestamp = parts[0];
-        const level = parts[1];
+        const level = parts[1].toLowerCase(); // normalize for comparison
         const message = parts[2];
         const metaRaw = parts.slice(3).join(', ');
 
@@ -51,14 +51,25 @@ export const reportLogs = async (req, res) => {
         }
 
         return { timestamp, level, message, ...metadata };
-      })
-      .sort((a, b) => {
-        if (!a.timestamp || !b.timestamp) return 0;
-        return new Date(b.timestamp) - new Date(a.timestamp);
       });
 
-    // ✅ Pass to the view
-    res.render('logs/report-logs', { date, logs , availableDates});
+    // ✅ Filter logs by level if provided
+    if (levelFilter) {
+      logs = logs.filter(log => log.level === levelFilter);
+    }
+
+    // ✅ Sort by latest timestamp
+    logs.sort((a, b) => {
+      if (!a.timestamp || !b.timestamp) return 0;
+      return new Date(b.timestamp) - new Date(a.timestamp);
+    });
+
+    res.render('logs/report-logs', {
+      date,
+      logs,
+      availableDates,
+      levelFilter
+    });
 
   } catch (err) {
     res.status(500).render('error', {
@@ -68,7 +79,7 @@ export const reportLogs = async (req, res) => {
   }
 };
 
- 
+
 
 
 export const downloadLogs = async (req, res) => {
