@@ -9,35 +9,58 @@
 <section class="sectionmin">
 
   <h1 class="mainheading">
-    Deactive List  
+    Deactive <span style="text-transform: capitalize;"><%= role %></span> List  
   </h1>
-
- 
+  <p class="maintext">
+    Total Records:  <%= countrecord %>
+  </p>
   <% if (error) { %>
       <h6 class="mainError"><%= error %></h6>
   <% }   %>
 
-<div class="sortcontrols">
-  <h5>
-    Active  List <a href="/users/active">Click Here</a>
-  </h5>
-  <% 
-    const primary = sortBy === 'createdAt';
-    const secondary = sortBy === 'deletedAt'; 
-  %>
-  <p>
-    <b>Sort : &nbsp;</b>
-    <a href="?page=1&sortBy=deletedAt&order=<%= secondary && order === 1 ? 'desc' : 'asc' %>" class="<%= secondary ? 'active' : '' %>">
-     Deleted <%= secondary ? (order === 1 ? '▲' : '▼') : ' ' %>
-    </a>
-     &nbsp; 
-    <a href="?page=1&sortBy=createdAt&order=<%= primary && order === 1 ? 'desc' : 'asc' %>" class="<%= primary ? 'active' : '' %>">
-      Created <%= primary ? (order === 1 ? '▲' : '▼') : ' ' %>
-    </a>
-     &nbsp; 
-  </p>
-</div>
-
+<section style="width: 100%; display: flex; justify-content: space-between;  align-items: center; margin: 10px 0 20px 0;">
+  <div class="logscontrol" style="justify-content: flex-start; column-gap: 20px;">
+    <form method="GET">
+      <label for="usertype">User Type</label>
+      <select id="usertype" onchange="changeUserType()">
+        <option value="active">Active</option>
+        <option value="deactive" selected>Deactive</option>
+      </select>
+    </form>
+    <form method="GET" id="roleFilterForm">
+      <label for="userrole">Select Role</label>
+      <select id="userrole" name="role"  onchange="changeUserRoll()">
+        <option value="user" <%= role === 'user' || !role ? 'selected' : '' %>>User</option>
+        <% if(user.role === 'superadmin') { %> 
+          <option value="admin" <%= role === 'admin' ? 'selected' : '' %>>Admin</option>
+        <% } %>
+      </select>
+    </form>
+  </div>
+  <div class="sortcontrols" style="justify-content: flex-end">
+    <% 
+      const primary = sortBy === 'createdAt';
+      const secondary = sortBy === 'deletedAt'; 
+    %>
+    <p>
+      <b>Sort : &nbsp;</b>
+      <a href="?role=<%= role %>&page=1&sortBy=deletedAt&order=<%= secondary && order === 1 ? 'desc' : 'asc' %>" class="<%= secondary ? 'active' : '' %>">
+      Deleted <%= secondary ? (order === 1 ? '▲' : '▼') : ' ' %>
+      </a>
+      &nbsp; 
+      <a href="?role=<%= role %>&page=1&sortBy=createdAt&order=<%= primary && order === 1 ? 'desc' : 'asc' %>" class="<%= primary ? 'active' : '' %>">
+        Created <%= primary ? (order === 1 ? '▲' : '▼') : ' ' %>
+      </a>
+      &nbsp; 
+    </p>
+  </div>
+</section>
+<% if(countrecord == '0') {  %>
+  <h2 class="notfoundmsg">
+    No Record Found
+  </h2>
+<% } else {  %>
+  <div>
     <% result.forEach((res) => { %>
         <div class="record_list disabled" >
             <% if (res.profilepicture && res.profilepicture.url) { %>
@@ -56,7 +79,7 @@
                 <strong>Deleted At:</strong> <%= new Date(res.deletedAt).toLocaleString() %><br>
             </p>
             <aside>
-                <a href="/users/enabled/<%= res.id %>?page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn btn-disabled" onclick="return confirm('Are you sure you want to Enabled this?')"> Enabled</a>   
+                <a href="/users/enabled/<%= res.id %>?role=<%= role %>&page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn btn-disabled" onclick="return confirm('Are you sure you want to Enabled this?')"> Enabled</a>   
                 <form action="/users/delete/<%= res._id %>" method="POST" style="display: inline; margin: 0; padding: 0; width: auto;" onsubmit="return confirm('Are you sure you want to delete this?')">
                   <input type="hidden" name="page" value="<%= currentPage || 1 %>">
                   <input type="hidden" name="sortBy" value="<%= sortBy || 'createdAt' %>">
@@ -66,25 +89,26 @@
             </aside>
         </div>
     <% }) %>
-
+  </div>
+<% } %>
 
     
  <% if (totalPages > 1) { %>
 <div class="pagingcontrols">
   <% if (currentPage > 1) { %>
-    <a href="?page=<%= currentPage - 1 %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>">Previous</a>
+    <a href="?role=<%= role %>&page=<%= currentPage - 1 %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>">Previous</a>
   <% } %>
 
   <% for (let i = 1; i <= totalPages; i++) { %>
     <% if (i === currentPage) { %>
       <b><%= i %></b>
     <% } else { %>
-      <a href="?page=<%= i %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>"><%= i %></a>
+      <a href="?role=<%= role %>&page=<%= i %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>"><%= i %></a>
     <% } %>
   <% } %>
 
   <% if (currentPage < totalPages) { %>
-    <a href="?page=<%= currentPage + 1 %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>">Next</a>
+    <a href="?role=<%= role %>&page=<%= currentPage + 1 %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>">Next</a>
   <% } %>
 </div>
  <% } %>
@@ -93,5 +117,18 @@
  
 </section>
 <%- include('../partials/footer', { title: 'EMP Management System' }) %>
+
+
+<script>
+  function changeUserType() {
+    const role = "<%= role %>"; 
+    window.location.href = `/users/active?role=${role}`;
+  }
+  function changeUserRoll() {
+    const select = document.getElementById('userrole');
+    const useruserrole = select.value;
+    window.location.href = `?role=${useruserrole}`;
+  }
+</script>
 </body>
 </html>

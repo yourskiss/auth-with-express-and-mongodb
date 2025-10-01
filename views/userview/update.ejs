@@ -7,26 +7,31 @@
 <%- include('../partials/header') %>
 <section class="sectionmin">
   <h1 class="mainheading">
-    <% if (user.role === 'superadmin') { %>Update Admin<% } else {  %>Update User<% } %>
+    <% if(querydata.role == '0' && querydata.page == '0' && querydata.sortBy == '0' && querydata.order == '0') { %> 
+      Update Profile
+    <% } else { %>
+    Update  <span style="text-transform: capitalize;"><%= querydata.role %></span> Details
+    <% }   %>
   </h1>
   <p class="maintext">
     Please update the details below and submit to save changes.
   </p>
   <h4 class="backto">
-     <% if(querydata.page == '0' && querydata.sortBy == '0' && querydata.order == '0') { %> 
-      <a href="/users/dashboard"  class="btn btn-back">Back</a>
+     <% if(querydata.role == '0' && querydata.page == '0' && querydata.sortBy == '0' && querydata.order == '0') { %> 
+      <a href="/users/dashboard"  class="btn btn-back">Back to Dashboard</a>
     <% } else { %>
-      <a href="/users/active?page=<%= querydata.page %>&sortBy=<%= querydata.sortBy %>&order=<%= querydata.order %>" class="btn btn-back">Back</a>
+      <a href="/users/active?role=<%= querydata.role %>&page=<%= querydata.page %>&sortBy=<%= querydata.sortBy %>&order=<%= querydata.order %>" class="btn btn-back">Back</a>
     <% }   %>
   </h4>
   
-  <form class="formpart"  id="formpart" action="/users/update/<%= result.id %>" method="post" enctype="multipart/form-data">
+  <form class="formpart"  id="formpart" action="/users/update/<%= result.id %>?role=<%= querydata.role %>" method="post" enctype="multipart/form-data">
     <% if (error && typeof error === 'string') { %>
       <aside class="errormessage"><%= error %></aside>
     <% } %>
     <% if (success) { %>
       <aside class="successmessage"><%= success %></aside>
       <script>
+        const role = "<%= querydata.role %>";
         const page = "<%= querydata.page %>";
         const sortBy = "<%= querydata.sortBy %>";
         const order = "<%= querydata.order %>";
@@ -36,11 +41,12 @@
           }, 2000);
         } else {
           setTimeout(() => {
-            window.location.href = `/users/active?page=${page}&sortBy=${sortBy}&order=${order}`;
+            window.location.href = `/users/active?role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`;
           }, 2000);
         }
       </script>
     <% } %>
+    <input type="hidden" name="roletype" value="<%= querydata.role %>">
     <input type="hidden" name="page" value="<%= querydata.page %>">
     <input type="hidden" name="sortBy" value="<%= querydata.sortBy %>">
     <input type="hidden" name="order" value="<%= querydata.order %>">
@@ -50,7 +56,7 @@
           <label>Profile Photo</label>
           <input type="file" name="profilepicture" accept="image/*" />
         </div>
-      <% if (result.profilepicture && result.profilepicture.url) { %>
+      <% if (result?.profilepicture?.url) { %>
           <img src="<%= result.profilepicture.url %>" alt="Profile Photo" width="100" />
       <% } %>
     </div>

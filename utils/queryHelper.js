@@ -1,12 +1,16 @@
-export const rollQuery = (role, isDeleted) => {
+ 
+ 
+export const rollQuery = (isSuperAdmin, role, isDeleted) => {
   let query = { isDeleted };
 
-  if (role === 'admin') {
-    query.role = { $nin: ['superadmin', 'admin'] };
+  if (role) {
+    if (role === 'admin' && !isSuperAdmin) {
+      throw new Error('Unauthorized access to admin role');
+    }
+    query.role = role;
+  } else {
+    query.role = isSuperAdmin ? { $nin: ['superadmin'] } : { $nin: ['admin', 'superadmin'] };
   }
-  if (role === 'superadmin') {
-    query.role = { $nin: ['superadmin'] };
-  } 
 
   return query;
 };
