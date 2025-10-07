@@ -36,7 +36,7 @@
         const page = "<%= querydata.page %>";
         const sortBy = "<%= querydata.sortBy %>";
         const order = "<%= querydata.order %>";
-        if (page === '0' && sortBy === '0' && order === '0') {
+        if (type === '0' && role === '0' && page === '0' && sortBy === '0' && order === '0') {
           setTimeout(() => {
             window.location.href = "/users/dashboard";
           }, 2000);

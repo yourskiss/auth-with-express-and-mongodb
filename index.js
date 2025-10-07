@@ -1,7 +1,7 @@
 import express from "express";
 import useragent from 'express-useragent';
 const app = express();
-
+ 
 import { PORT } from "./config/env.js"; // port
 import connectDB from "./config/db.js"; // db
 import userRoutes  from "./routes/userRoutes.js"; // user routes
@@ -14,6 +14,8 @@ import compressionMiddleware from "./middlewares/compressionMiddleware.js"; // r
 import winstonMiddleware from "./middlewares/winstonMiddleware.js";  // logger  
 import {reportLogs, downloadLogs} from  "./utils/logs.js" // read logger
 
+import redisClient from './config/redisClient.js';
+ 
 // make directory accessible for public use
 app.use(express.static("public"));
 app.use(express.static('logs'));
@@ -61,6 +63,9 @@ app.use((req, res, next) => {
   next();
 });
 
+
+ 
+ 
 
 // main route
 app.get('/', (req, res) => {

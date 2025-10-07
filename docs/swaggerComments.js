@@ -190,21 +190,31 @@
 
 
 
-
-
-
-/**
+ /**
  * @swagger
- * /users/active:
+ * /users/list:
  *   get:
- *     summary: Get list of all active users 
- *     tags: [Users]
+ *     summary: Get a paginated list of users
+ *     description: Retrieves users based on role, status (active/deactive), and pagination. Accessible by superadmin and other roles.
+ *     tags:
+ *       - Users
  *     parameters:
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [active, deactive]
+ *         description: Filter users by status
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *         description: Filter users by role
  *       - in: query
  *         name: page
  *         schema:
  *           type: integer
- *         description: Page number
+ *         description: Page number for pagination
  *       - in: query
  *         name: sortBy
  *         schema:
@@ -220,57 +230,48 @@
  *         name: limit
  *         schema:
  *           type: integer
- *         description: Number of items per page
- *     responses:
- *       200:
- *         description: List of users returned successfully
- *       409:
- *         description: No record found
- *       500:
- *         description: Internal server error
- */
-
-
-
-
-/**
- * @swagger
- * /users/deactive:
- *   get:
- *     summary: Get list of deactive users
- *     tags: [Users]
- *     parameters:
+ *         description: Number of records per page
  *       - in: query
- *         name: page
+ *         name: skip
  *         schema:
  *           type: integer
- *         description: Page number
- *       - in: query
- *         name: sortBy
- *         schema:
- *           type: string
- *         description: Field to sort by
- *       - in: query
- *         name: order
- *         schema:
- *           type: string
- *           enum: [asc, desc]
- *         description: Sort order
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *         description: Number of items per page
+ *         description: Number of records to skip
  *     responses:
  *       200:
- *         description: List of hidden users returned
- *       409:
- *         description: No record found
+ *         description: A list of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: integer
+ *                 view:
+ *                   type: string
+ *                 error:
+ *                   type: string
+ *                   nullable: true
+ *                 result:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *                 currentPage:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 sortBy:
+ *                   type: string
+ *                 order:
+ *                   type: string
+ *                 role:
+ *                   type: string
+ *                 type:
+ *                   type: string
+ *                 countrecord:
+ *                   type: integer
  *       500:
- *         description: Internal server error
+ *         description: Internal Server Error
  */
-
-
 
 
 

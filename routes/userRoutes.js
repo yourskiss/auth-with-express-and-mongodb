@@ -36,8 +36,11 @@ import {
     handlePasswordReset  
 } from '../controllers/userGuestController.js';
 
- 
+import {usersListCache} from "../cache/list.js";
+import {userDetailCache} from "../cache/detail.js";
+import {userDashboardCache} from '../cache/dashboard.js';
 
+ 
 // public routes
 router.get('/register', isGuest, renderRegister);
 router.post('/register', isGuest, handleRegister);
@@ -57,12 +60,11 @@ router.post('/password-reset', isGuest, handlePasswordReset);
 
 
 // protected route
-router.get('/list', isAuthenticated, checkRole(['admin', 'superadmin']), usersList);
- 
 router.get('/create', isAuthenticated, checkRole(['admin', 'superadmin']), renderAdd);
 router.post('/create', isAuthenticated, checkRole(['admin', 'superadmin']), handleAdd);
 
-router.get('/detail/:id', isAuthenticated, checkRole(['admin', 'superadmin']), validateObjectId, getById);
+router.get('/list', usersListCache, isAuthenticated, checkRole(['admin', 'superadmin']), usersList);
+router.get('/detail/:id', userDetailCache, isAuthenticated, checkRole(['admin', 'superadmin']), validateObjectId, getById);
 
 router.get('/disabled/:id', isAuthenticated, checkRole(['admin','superadmin']), validateObjectId, handleDisabled);
 router.get('/enabled/:id', isAuthenticated, checkRole(['admin','superadmin']), validateObjectId, handleEnabled);
@@ -77,7 +79,7 @@ router.get('/logout', isAuthenticated, checkRole(['user', 'admin', 'superadmin']
 router.get('/password-change', isAuthenticated, checkRole(['user', 'admin', 'superadmin']), renderChangePassword);
 router.post('/password-change', isAuthenticated, checkRole(['user', 'admin', 'superadmin']), handleChangePassword);
 
-router.get('/dashboard', isAuthenticated, checkRole(['user', 'admin', 'superadmin']), renderDashboard);
+router.get('/dashboard', userDashboardCache, isAuthenticated, checkRole(['user', 'admin', 'superadmin']), renderDashboard);
 
 
 const userRoutes = router;
