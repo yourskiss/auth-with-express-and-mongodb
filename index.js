@@ -12,9 +12,8 @@ import corsMiddleware from "./middlewares/corsMiddleware.js"; // cors
 import helmetMiddleware from './middlewares/helmetMiddleware.js'; // helment
 import compressionMiddleware from "./middlewares/compressionMiddleware.js"; // request response compresor 
 import winstonMiddleware from "./middlewares/winstonMiddleware.js";  // logger  
-import {reportLogs, downloadLogs} from  "./utils/logs.js" // read logger
+import {reportLogs, downloadLogs} from  "./routes/logsRouters.js" // read logger
 
-import redisClient from './config/redisClient.js';
  
 // make directory accessible for public use
 app.use(express.static("public"));
@@ -78,6 +77,7 @@ app.use("/users",userRoutes);
 // log reports - router
 app.use('/report-logs', reportLogs);
 app.use('/download-logs', downloadLogs);
+
  
 //404 page
 app.use((req, res, next) => {

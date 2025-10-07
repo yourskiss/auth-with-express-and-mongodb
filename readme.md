@@ -78,11 +78,12 @@ This project currently uses the <strong>Redis Cloud Free Tier (trial account)</s
 </ul> 
  
  
-<h3>✅ Testing – Built-in node:test Module</h3>
+<h3>✅ Testing </h3>
 <p>
 working on it
 </p>
 <!--
+<h3>✅ Testing – Built-in node:test Module</h3>
 <p> This project uses the built-in <code>node:test</code> module (available from Node.js v18+) to implement and run unit and integration tests without requiring external libraries like Mocha or Jest. This approach simplifies setup and reduces dependencies while maintaining test reliability. </p>
 <ul> 
 <li><strong>Minimal Setup:</strong> No third-party testing frameworks needed.</li> 
@@ -99,6 +100,7 @@ working on it
 <li><strong>MongoDB Atlas</strong> – Scalable cloud-hosted NoSQL database</li>
 <li><strong>Mongoose</strong> – ODM for schema and data modeling</li>
 <li><strong>EJS</strong> – Templating engine for server-rendered views</li>
+<li><strong>ioredis</strong> – Performance Optimization in-memory caching</li>
 </ul>
 
 <h3>📑 Validation</h3>
