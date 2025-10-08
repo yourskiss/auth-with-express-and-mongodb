@@ -60,16 +60,16 @@ body { font-family: Arial, Helvetica, sans-serif; }
 
 .btn { display: inline-block; padding: 6px 12px; background-color: #007bff; color: white; border: none; text-decoration: none; border-radius: 4px; cursor: pointer; }
 .btn:hover { background-color: #05376d; color: white; }
-.btn-delete { padding: 8px 15px; background-color: #f34a5b;}
+.btn-delete { background-color: #f34a5b;}
 .btn-delete:hover {  background-color: #9c0010;}
-.btn-disabled { background-color: #585858; }
-.btn-disabled:hover {  background-color: #c82333;}
-.btn-enabled { background-color: #00ff00;  }
-.btn-enabled:hover { background-color: #c82333;  }
+.btn-disabled { background-color: #9a9fa5; }
+.btn-disabled:hover {  background-color: #03274d; }
+.btn-enabled { background-color: #03274d;  }
+.btn-enabled:hover { background-color: #9a9fa5;  }
 .btn-update { margin: 0 0 10px 10px;  padding: 10px 25px; float: right; }
 .btn-back { margin:0px 0 10px 0;  padding: 8px 20px; float: left; background-color: #585858; color: #fff;  }
 .btn-back:hover { background-color: #f34a5b; }
-
+.btn-loading { pointer-events: none; user-select: none; opacity: 0.6;}
 
 .formBtnContainer { display: flex; justify-content: center; align-items: center;  }
 .formBtnContainer:disabled { user-select: none; pointer-events: none;  opacity: 0.7; }

@@ -1,4 +1,3 @@
- 
 export const getPagination = (req) => {
   const type = req.query.type || 'all';
   const role = req.query.role || 'user';

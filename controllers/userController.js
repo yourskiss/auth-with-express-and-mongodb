@@ -1,3 +1,4 @@
+import { promisify } from 'util';
 import userModels from "../models/userModels.js";
 import { hashedPassword, comparePassword } from '../utils/password.js';
 import { rollQuery } from "../utils/queryHelper.js";
@@ -12,21 +13,37 @@ import sendMSG from '../utils/twilio.js'; // sms
 
 import {clearUsersListCache} from "../cache/list.js";
 import {clearUserDetailCache} from "../cache/detail.js";
-import { clearUserDashboardCache } from "../cache/dashboard.js";
+import {clearUserDashboardCache} from "../cache/dashboard.js";
 
+
+
+
+ 
 export const handleLogout = async (req, res) => {
-  req.session.destroy(err => {
-    if (err) {
-      wlogs(req, 'error', 'Logout - failed',  400);
-      console.error('Logout error:', err);
-      return res.status(500).send('Logout failed');
+  const destroySession = promisify(req.session.destroy).bind(req.session);
+  try {
+    await destroySession(); // Promisified session destroy
+
+    try {
+      await clearUserDashboardCache(); // Clear dashboard cache
+    } catch (cacheErr) {
+      wlogs(req, 'warn', 'Logout - Cache clear failed', 500);
+      console.warn('Cache clear error during logout:', cacheErr);
     }
-    wlogs(req, 'info', 'Logout - Successfull',  302);
-    res.clearCookie('connect.sid'); // Optional: clears the session cookie
-    res.redirect('/users/login'); // Redirect to login page
-  });
+
+    wlogs(req, 'info', 'Logout - Successful', 302);
+    res.clearCookie('connect.sid');
+    res.redirect('/users/login');
+
+  } catch (err) {
+    wlogs(req, 'error', 'Logout - Failed', 500);
+    console.error('Logout error:', err);
+    res.status(500).send('Logout failed');
+  }
 };
 
+
+ 
 
 export const usersList = async (req, res) => {
   console.log('HIT list -', req.query);
@@ -246,7 +263,7 @@ export const handleUpdate = async (req, res) => {
     await clearUserDetailCache(id);
     await clearUserDashboardCache();
 
-    wlogs(req, 'info', 'Update User - successfull',  200);
+    wlogs(req, 'info', 'Update User - Successful',  200);
     return returnUpdate({ 
       res, 
       status: 200, 
@@ -273,7 +290,7 @@ export const handleUpdate = async (req, res) => {
 
 export const handleDisabled = async (req, res) => {
   let { id } = req.params;
-  const { type, role, page, sortBy, order } = getPagination(req);
+  const { type, role, page, sortBy, order, limit  } = getPagination(req);
   try {
     const isDisabled = await userModels.findByIdAndUpdate(
       { _id: id, isDeleted: false },
@@ -285,11 +302,28 @@ export const handleDisabled = async (req, res) => {
       return res.status(404).send("Record not Disabled");
     }
 
+    /*
+    // Filtered count 
+    let filter = {};
+    if (role) { filter.role = role; }
+    if (type === 'active') { filter.isDeleted = false; } 
+    else if (type === 'deactive') { filter.isDeleted = true; } 
+    else { }
+    let remainingCount = await userModels.countDocuments(filter);
+    let totalPages = Math.ceil(remainingCount / limit);
+    if (page > totalPages && totalPages > 0) { page = totalPages; }
+    if (totalPages === 0) { page = 1; } 
+    */
+
     // ✅ Disabled : Clear list and detail cache
     await clearUsersListCache(req);
     await clearUserDetailCache(id);
+    await clearUserDashboardCache();
 
-    wlogs(req, 'info', 'Disable User - Successfull',  302);
+    // ✅ Prevent cached page from being served
+    res.set('Cache-Control', 'no-store');
+
+    wlogs(req, 'info', 'Disable User - Successful',  302);
     res.redirect(`/users/list?type=${type}&role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`);
   } catch (err) {
     wlogs(req, 'error', 'Disable User - Internal Server Error',  500);
@@ -299,9 +333,9 @@ export const handleDisabled = async (req, res) => {
  
 export const handleEnabled = async (req, res) => {
   let { id } = req.params;
-  const { type, role, page, sortBy, order  } = getPagination(req);
+  const { type, role, page, sortBy, order, limit  } = getPagination(req);
   try {
-    const isEnabled = await userModels.findByIdAndUpdate(
+    let isEnabled = await userModels.findByIdAndUpdate(
       { _id: id, isDeleted: true },
       { deletedBy:null, isDeleted: false, deletedAt:null, otpTemp:null, otpExpiry:null },
       { new: true }
@@ -311,11 +345,28 @@ export const handleEnabled = async (req, res) => {
       return res.status(404).send("Record not Enabled  ");
     }
 
+    /*
+    // Filtered count 
+    let filter = {};
+    if (role) { filter.role = role; }
+    if (type === 'active') { filter.isDeleted = false; } 
+    else if (type === 'deactive') { filter.isDeleted = true; } 
+    else { }
+    let remainingCount = await userModels.countDocuments(filter);
+    let totalPages = Math.ceil(remainingCount / limit);
+    if (page > totalPages && totalPages > 0) { page = totalPages; }
+    if (totalPages === 0) { page = 1; } 
+    */
+
     // ✅ Enabled : Clear list and detail cache
     await clearUsersListCache(req);
     await clearUserDetailCache(id);
+    await clearUserDashboardCache();
 
-    wlogs(req, 'info', 'Enable User - Successfull',  302);
+    // ✅ Prevent cached page from being served
+    res.set('Cache-Control', 'no-store');
+
+    wlogs(req, 'info', 'Enable User - Successful',  302);
     res.redirect(`/users/list?type=${type}&role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`);
   } catch (err) {
     wlogs(req, 'error', 'Disable User - Internal Server Error',  500);
@@ -325,26 +376,36 @@ export const handleEnabled = async (req, res) => {
  
 export const handleDelete = async (req, res) => {
   const { id } = req.params;
-  const { type, role, page, sortBy, order, limit  } = getPagination(req);
-
+  const { type, role, page, sortBy, order, limit } = getPagination(req);
   try {
-    const deleted = await userModels.findByIdAndDelete(id);
+    let deleted = await userModels.findByIdAndDelete(id);
     if (!deleted) {
       wlogs(req, 'error', 'Delete User - Not Deleted',  404);
       return res.status(404).send("Record not deleted");
     }
-    const remainingCount = await userModels.countDocuments();
-    const totalPages = Math.ceil(remainingCount / limit);
-    if (page > totalPages && totalPages > 0) { page = totalPages;}
-    if (totalPages === 0) { page = 1;}
-
+    
+    /*
+    // Filtered count 
+    let filter = {};
+    if (role) { filter.role = role; }
+    if (type === 'active') { filter.isDeleted = false; } 
+    else if (type === 'deactive') { filter.isDeleted = true; } 
+    else { }
+    let remainingCount = await userModels.countDocuments(filter);
+    let totalPages = Math.ceil(remainingCount / limit);
+    if (page > totalPages && totalPages > 0) { page = totalPages; }
+    if (totalPages === 0) { page = 1; } 
+    */
  
-     // ✅ delete : Clear list and detail cache
+     // ✅ delete : Clear cache
     await clearUsersListCache(req);
     await clearUserDetailCache(id);
+    await clearUserDashboardCache();
 
+    // ✅ Prevent cached page from being served
+    res.set('Cache-Control', 'no-store');
 
-    wlogs(req, 'info', 'Delete User - Successfull',  302);
+    wlogs(req, 'info', 'Delete User - Successful',  302);
     res.redirect(`/users/list?type=${type}&role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`);
   } catch (err) {
     wlogs(req, 'error', 'Delete User - Internal Server Error',  500);
@@ -537,7 +598,7 @@ export const renderDashboard = async (req, res) => {
         data: []
     });
   }
-  wlogs(req, 'info', 'Dashboard - Successfull',  200);
+  wlogs(req, 'info', 'Dashboard - Successful',  200);
   return returnDashboard({ 
         res, 
         status:200, 

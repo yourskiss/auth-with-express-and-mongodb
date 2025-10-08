@@ -68,8 +68,7 @@ router.get('/detail/:id', userDetailCache, isAuthenticated, checkRole(['admin', 
 
 router.get('/disabled/:id', isAuthenticated, checkRole(['admin','superadmin']), validateObjectId, handleDisabled);
 router.get('/enabled/:id', isAuthenticated, checkRole(['admin','superadmin']), validateObjectId, handleEnabled);
-
-router.post('/delete/:id', isAuthenticated, checkRole(['admin','superadmin']), validateObjectId, handleDelete);
+router.get('/delete/:id', isAuthenticated, checkRole(['admin','superadmin']), validateObjectId, handleDelete);
 
 router.get("/update/:id", isAuthenticated, checkRole(['user', 'admin', 'superadmin']), validateObjectId, renderUpdate);
 router.post("/update/:id", isAuthenticated, checkRole(['user', 'admin', 'superadmin']), uploadPP.single('profilepicture'), validateObjectId, handleUpdate);
