@@ -38,3 +38,13 @@ export const clearUserDetailCache = async (id) => {
   await redisClient.del(`users:detail:${id}`);
   console.log(`🗑️  Cleared cache  => users:detail:${id} `);
 };
+export const clearUsersWithoutIdCache = async () => {
+  const pattern = `users:detail:*`;
+  const keys = await redisClient.keys(pattern);
+  if (keys.length > 0) {
+    await redisClient.del(...keys);
+    console.log(`🗑️  Cleared cache => ${pattern} (${keys.length})`);
+  } else {
+    console.log(`ℹ️ No ${pattern} cache keys found`);
+  }
+};

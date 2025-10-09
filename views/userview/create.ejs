@@ -23,7 +23,7 @@
       <aside class="successmessage"><%= success %></aside>
       <script>
         setTimeout(() => {
-          window.location.href = '/users/list';
+          window.location.href = "/users/list?role=<%= data.role %>&page=1&sortBy=createdAt&order=desc";
         }, 2000); 
       </script>
     <% } %>

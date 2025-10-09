@@ -11,11 +11,9 @@ import { processProfileImage } from '../utils/uploadProcessor.js';
 import { wlogs } from '../utils/winstonLogger.js'; // logger
 import sendMSG from '../utils/twilio.js'; // sms
 
-import {clearUsersListCache} from "../cache/list.js";
-import {clearUserDetailCache} from "../cache/detail.js";
-import {clearUserDashboardCache} from "../cache/dashboard.js";
+ 
 
-
+import { handleUserCacheAndHeaders } from '../cache/cacheResponseHandler.js';
 
 
  
@@ -23,18 +21,11 @@ export const handleLogout = async (req, res) => {
   const destroySession = promisify(req.session.destroy).bind(req.session);
   try {
     await destroySession(); // Promisified session destroy
-
-    try {
-      await clearUserDashboardCache(); // Clear dashboard cache
-    } catch (cacheErr) {
-      wlogs(req, 'warn', 'Logout - Cache clear failed', 500);
-      console.warn('Cache clear error during logout:', cacheErr);
-    }
-
+    // ✅ Logout : Clear cache
+    await handleUserCacheAndHeaders({ clearDetailCache: true, clearAllListCache: true }, res);
     wlogs(req, 'info', 'Logout - Successful', 302);
     res.clearCookie('connect.sid');
     res.redirect('/users/login');
-
   } catch (err) {
     wlogs(req, 'error', 'Logout - Failed', 500);
     console.error('Logout error:', err);
@@ -254,14 +245,8 @@ export const handleUpdate = async (req, res) => {
         querydata: qd 
       });
     }
-    
-    // ✅update : Clear list and detail cache
-    await clearUsersListCache(req);
-    await clearUserDetailCache(id);
-    await clearUserDashboardCache();
-
-    // ✅ Prevent cached page from being served
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    // ✅ Updated : Clear cache
+    await handleUserCacheAndHeaders({ role, page, sortBy, order, id }, res);
 
     wlogs(req, 'info', 'Update User - Successful',  200);
     return returnUpdate({ 
@@ -302,16 +287,11 @@ export const handleDisabled = async (req, res) => {
       wlogs(req, 'error', 'Disable User - Not Disabled',  404);
       return res.status(404).send("Record not Disabled");
     }
-    // ✅ Disabled : Clear list and detail cache
-    await clearUsersListCache(req);
-    await clearUserDetailCache(id);
-    await clearUserDashboardCache();
-
-    // ✅ Prevent cached page from being served
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    // ✅ Disabled : Clear cache
+    await handleUserCacheAndHeaders({ role, page, sortBy, order, id }, res);
 
     wlogs(req, 'info', 'Disable User - Successful',  302);
-    res.redirect(`/users/list?role=${role}&page=${page}&sortBy=${sortBy}&order=${order}&t=${Date.now()}`);
+    res.redirect(`/users/list?role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`);
   } catch (err) {
     wlogs(req, 'error', 'Disable User - Internal Server Error',  500);
     res.status(500).json({ error: `Internal Server Error - ${err.message}` });
@@ -320,7 +300,6 @@ export const handleDisabled = async (req, res) => {
  
 export const handleEnabled = async (req, res) => {
   let { id } = req.params;
-  console.log('handleEnabled - CALLED -', );
   const {   role, page, sortBy, order  } = getPagination(req);
   try {
     let isEnabled = await userModels.findByIdAndUpdate(
@@ -333,16 +312,11 @@ export const handleEnabled = async (req, res) => {
       wlogs(req, 'error', 'Enable User - Not Enabled',  404);
       return res.status(404).send("Record not Enabled  ");
     }
-    // ✅ Enabled : Clear list and detail cache
-    await clearUsersListCache(req);
-    await clearUserDetailCache(id);
-    await clearUserDashboardCache();
-
-    // ✅ Prevent cached page from being served
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    // ✅ Enabled : Clear cache
+    await handleUserCacheAndHeaders({ role, page, sortBy, order, id }, res);
 
     wlogs(req, 'info', 'Enable User - Successful',  302);
-    res.redirect(`/users/list?role=${role}&page=${page}&sortBy=${sortBy}&order=${order}&t=${Date.now()}`);
+    res.redirect(`/users/list?role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`);
   } catch (err) {
     wlogs(req, 'error', 'Disable User - Internal Server Error',  500);
     res.status(500).json({ error: `Internal Server Error - ${err.message}` });
@@ -362,24 +336,29 @@ export const handleDelete = async (req, res) => {
     }
     
     // Filtered count based on role  
-    /*
     let filteredQuery = { role };
     let remainingCount = await userModels.countDocuments(filteredQuery);
     let totalPages = Math.ceil(remainingCount / limit);
     if (page > totalPages && totalPages > 0) { page = totalPages; }
     if (totalPages === 0) { page = 1; } 
-    */
+    console.log(`After deletion, remaining count: ${remainingCount}, totalPages: ${totalPages}, currentPage: ${page}`);
  
-     // ✅ delete : Clear cache
-    await clearUsersListCache(req);
-    await clearUserDetailCache(id);
-    await clearUserDashboardCache();
-
-    // ✅ Prevent cached page from being served
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    // ✅ delete : Clear cache
+    await handleUserCacheAndHeaders({ role, page, sortBy, order, id }, res);
 
     wlogs(req, 'info', 'Delete User - Successful',  302);
-    res.redirect(`/users/list?role=${role}&page=${page}&sortBy=${sortBy}&order=${order}&t=${Date.now()}`);
+    res.redirect(`/users/list?role=${role}&page=${page}&sortBy=${sortBy}&order=${order}`);
+    /*
+    res.send(`<html>
+      <head>
+        <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+        <meta http-equiv="refresh" content="0; URL='/users/list?role=${role}&page=${page}&sortBy=${sortBy}&order=${order}'" />
+      </head>
+      <body>
+        Redirecting...
+      </body>
+    </html>`);
+    */
   } catch (err) {
     wlogs(req, 'error', 'Delete User - Internal Server Error',  500);
     res.status(500).json({ error: `Internal Server Error - ${err.message}` });
@@ -429,6 +408,11 @@ export const handleAdd = async (req, res) => {
           data
         });
       }
+      console.log('New User Created with ID:', result._id);
+
+    // ✅ Create : Clear cache
+    await handleUserCacheAndHeaders({ id: result._id, clearAllListCache: true }, res);
+
       wlogs(req, 'info', 'Create User - Successfully', 200);
       return returnAdd({ 
         res, 

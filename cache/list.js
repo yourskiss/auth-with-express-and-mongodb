@@ -34,12 +34,20 @@ export const usersListCache = async (req, res, next) => {
  
 
 // ❌ Clear cache functions
-export const clearUsersListCache = async (req) => {
-  const {role, page, sortBy, order } = req.query;
+export const clearUsersListCache = async ({ role, page, sortBy, order }) => {
   const LIST_CACHE_KEY = `users:list:role=${role}:page=${page}:sortBy=${sortBy}:order=${order}`;
-
   await redisClient.del(LIST_CACHE_KEY);
   console.log(`🗑️  Cleared cache => ${LIST_CACHE_KEY}`);
 };
 
- 
+
+export const clearAllUsersListCache = async () => {
+  const pattern = `users:list:*`;
+  const keys = await redisClient.keys(pattern);
+  if (keys.length > 0) {
+    await redisClient.del(...keys);
+    console.log(`🗑️  Cleared cache => ${pattern} (${keys.length})`);
+  } else {
+    console.log(`ℹ️ No ${pattern} cache keys found`);
+  }
+};
