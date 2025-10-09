@@ -7,7 +7,7 @@
 <%- include('../partials/header') %>
 <section class="sectionmin">
     <h1 class="mainheading">
-      <% if (user.role === 'superadmin') { %>Admin Details<% } else {  %>User Details<% } %>
+      <span style="text-transform: capitalize;"><%= result.role %></span> Details 
     </h1>
     <p class="backto">
       <a href="/users/list<%= querydata %>" class="btn btn-back">Back</a>

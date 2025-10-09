@@ -7,7 +7,7 @@
 <%- include('../partials/header') %>
 <section class="sectionmin">
   <h1 class="mainheading">
-    <% if(querydata.type == 'all' && querydata.role == '0') { %> 
+    <% if(querydata.role == '0') { %> 
       Update Profile
     <% } else { %>
     Update  <span style="text-transform: capitalize;"><%= querydata.role %></span> Details
@@ -17,7 +17,7 @@
     Please update the details below and submit to save changes.
   </p>
   <h4 class="backto">
-     <% if(querydata.role == '0' && querydata.page == '0' && querydata.sortBy == '0' && querydata.order == '0') { %> 
+     <% if(querydata.role == '0') { %> 
       <a href="/users/dashboard"  class="btn btn-back">Back to Dashboard</a>
     <% } else { %>
       <a href="/users/list?role=<%= querydata.role %>&page=<%= querydata.page %>&sortBy=<%= querydata.sortBy %>&order=<%= querydata.order %>" class="btn btn-back">Back</a>
@@ -35,7 +35,7 @@
         const page = "<%= querydata.page %>";
         const sortBy = "<%= querydata.sortBy %>";
         const order = "<%= querydata.order %>";
-        if (role === '0' && page === '0' && sortBy === '0' && order === '0') {
+        if (role === '0') {
           setTimeout(() => {
             window.location.href = "/users/dashboard";
           }, 2000);
