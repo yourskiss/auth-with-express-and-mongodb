@@ -4,14 +4,13 @@ import redisClient from '../config/redisClient.js';
 
 // 📌 Middleware: Cache for /users/list
 export const usersListCache = async (req, res, next) => {
-  
-  const queryKey = JSON.stringify(req.query);
-  const LIST_CACHE_KEY = `users:list:${queryKey}`;
+  const {role, page, sortBy, order } = req.query;
+  const LIST_CACHE_KEY = `users:list:role=${role}:page=${page}:sortBy=${sortBy}:order=${order}`;
 
   try {
     const cached = await redisClient.get(LIST_CACHE_KEY);
     if (cached) {
-      console.log('✅ Serving from cache => /users/list');
+      console.log(`✅ Serving from cache => ${LIST_CACHE_KEY}`);
       return res.send(cached);
     }
 
@@ -20,15 +19,15 @@ export const usersListCache = async (req, res, next) => {
       try {
         const stringBody = typeof body === 'string' ? body : JSON.stringify(body);
         await redisClient.setex(LIST_CACHE_KEY, CACHE_TTL, stringBody);
-        console.log('📝 Response added in Cache  => /users/list');
+        console.log(`📝 Response added in Cache  => ${LIST_CACHE_KEY}`);
       } catch (err) {
-        console.error('Redis error => users:list -', err);
+        console.error(`Redis error =>${LIST_CACHE_KEY}`, err);
       }
       originalSend(body);
     };
     next();
   } catch (err) {
-    console.error('Redis error => users:list -', err);
+    console.error(`Redis error => ${LIST_CACHE_KEY}`, err);
     next();
   }
 };
@@ -36,11 +35,11 @@ export const usersListCache = async (req, res, next) => {
 
 // ❌ Clear cache functions
 export const clearUsersListCache = async (req) => {
-  const queryKey = JSON.stringify(req.query);
-  const LIST_CACHE_KEY = `users:list:${queryKey}`;
+  const {role, page, sortBy, order } = req.query;
+  const LIST_CACHE_KEY = `users:list:role=${role}:page=${page}:sortBy=${sortBy}:order=${order}`;
 
   await redisClient.del(LIST_CACHE_KEY);
-  console.log('🗑️  Cleared cache => users:list');
+  console.log(`🗑️  Cleared cache => ${LIST_CACHE_KEY}`);
 };
 
  

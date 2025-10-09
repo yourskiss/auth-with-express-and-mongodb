@@ -55,7 +55,7 @@ export const returnPR= ({ res, status, view, success, info, error, data }) => {
 
 
 
-export const returnList = ({ res, status,  view, error, result, currentPage, totalPages, sortBy, order, role, type, countrecord }) => {
+export const returnList = ({ res, status,  view, error, result, currentPage, totalPages, sortBy, order, role,  countrecord }) => {
   res.status(status).render(`userview/${view}`, {
     error,
     status,
@@ -65,7 +65,6 @@ export const returnList = ({ res, status,  view, error, result, currentPage, tot
     sortBy,
     order,
     role,
-    type,
     countrecord
   });
 };

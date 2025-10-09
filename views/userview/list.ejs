@@ -9,7 +9,7 @@
 <section class="sectionmin">
 
   <h1 class="mainheading">
-    <span style="text-transform: capitalize;"><%= type %></span> <span style="text-transform: capitalize;"><%= role %></span> List
+    <span style="text-transform: capitalize;"><%= role %></span> List
   </h1>
   <p class="maintext">
    Total Records:  <%= countrecord %>
@@ -21,16 +21,8 @@
 <section style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin: 10px 0 20px 0;">
   <div class="logscontrol" style="justify-content: flex-start; column-gap: 20px;">
     <form method="GET">
-      <label for="usertype">Type</label>
-      <select id="usertype" name="usertype" onchange="changeUserType()">
-        <option value="all" <%= type === 'all' || !type ? 'selected' : '' %>>All</option>
-        <option value="active" <%= type === 'active'  ? 'selected' : '' %>>Active</option>
-        <option value="deactive" <%= type === 'deactive' ? 'selected' : '' %>>Deactive </option>
-      </select>
-    </form>
-    <form method="GET">
       <label for="userrole">Role</label>
-      <select id="userrole" name="userrole"  onchange="changeUserRoll()">
+      <select id="role" name="role"  onchange="changeUserRoll()">
         <option value="user" <%= role === 'user' || !role ? 'selected' : '' %>>User</option>
         <% if(user.role === 'superadmin') { %> 
           <option value="admin" <%= role === 'admin' ? 'selected' : '' %>>Admin</option>
@@ -46,11 +38,11 @@
     %>
     <p>
       <b>Sort : &nbsp;</b>
-      <a href="?type=<%=type %>&role=<%= role %>&page=1&sortBy=fullname&order=<%= secondary && order === 1 ? 'desc' : 'asc' %>" class="<%= secondary ? 'active' : '' %>">
+      <a href="?role=<%= role || 'user' %>&page=1&sortBy=fullname&order=<%= secondary && order === 1 ? 'desc' : 'asc' %>" class="<%= secondary ? 'active' : '' %>">
       By Name <%= secondary ? (order === 1 ? '▲' : '▼') : ' ' %>
       </a>
       &nbsp; 
-      <a href="?type=<%=type %>&role=<%= role %>&page=1&sortBy=createdAt&order=<%= primary && order === 1 ? 'desc' : 'asc' %>" class="<%= primary ? 'active' : '' %>">
+      <a href="?role=<%= role || 'user' %>&page=1&sortBy=createdAt&order=<%= primary && order === 1 ? 'desc' : 'asc' %>" class="<%= primary ? 'active' : '' %>">
         Created By <%= primary ? (order === 1 ? '▲' : '▼') : ' ' %>
       </a>
       &nbsp; 
@@ -87,10 +79,10 @@
                 </p>
             </aside>
             <aside>
-                <a href="/users/detail/<%= res.id %>?type=<%= type %>&role=<%= role %>&page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn">View </a>  
-                <a href="/users/update/<%= res.id %>?type=<%= type %>&role=<%= role %>&page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn">Update </a>  
-                <a href="/users/<%= res.isDeleted ? 'enabled' : 'disabled' %>/<%= res.id %>?type=<%= type || 'all' %>&role=<%= role || 'user' %>&page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" onclick="return handleActionButton(this.id)" id="action-<%= res.id %>" class="btn <%= res.isDeleted ? 'btn-enabled' : 'btn-disabled' %>"> <%= res.isDeleted ? 'Active' : 'Deactive' %></a>  
-                <a href="/users/delete/<%= res.id %>?type=<%= type || 'all' %>&role=<%= role || 'user' %>&page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" onclick="return handleDeleteButton(this.id)" id="delete-<%= res.id %>" class="btn btn-delete">Delete</a>
+                <a href="/users/detail/<%= res.id %>?role=<%= role || 'user' %>&page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn">View </a>  
+                <a href="/users/update/<%= res.id %>?role=<%= role || 'user' %>&page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" class="btn">Update </a>  
+                <a href="/users/<%= res.isDeleted ? 'enabled' : 'disabled' %>/<%= res.id %>?role=<%= role || 'user' %>&page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" onclick="return handleActionButton('<%= res.id %>')" id="action-<%= res.id %>" class="btn <%= res.isDeleted ? 'btn-enabled' : 'btn-disabled' %>"> <%= res.isDeleted ? 'Active' : 'Deactive' %></a>  
+                <a href="/users/delete/<%= res.id %>?role=<%= role || 'user' %>&page=<%= currentPage || 1 %>&sortBy=<%= sortBy || 'createdAt' %>&order=<%= order === 1 ? 'asc' : 'desc' %>" onclick="return handleDeleteButton('<%= res.id %>')" id="delete-<%= res.id %>" class="btn btn-delete">Delete</a>
             </aside>
         </div>
     <% }) %>
@@ -100,19 +92,19 @@
  <% if (totalPages > 1) { %>
     <div class="pagingcontrols">
       <% if (currentPage > 1) { %>
-        <a href="?type=<%= type %>&role=<%= role %>&page=<%= currentPage - 1 %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>">Previous</a>
+        <a href="?role=<%= role || 'user' %>&page=<%= currentPage - 1 %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>">Previous</a>
       <% } %>
 
       <% for (let i = 1; i <= totalPages; i++) { %>
         <% if (i === currentPage) { %>
           <b><%= i %></b>
         <% } else { %>
-          <a href="?type=<%= type %>&role=<%= role %>&page=<%= i %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>"><%= i %></a>
+          <a href="?role=<%= role || 'user' %>&page=<%= i %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>"><%= i %></a>
         <% } %>
       <% } %>
 
       <% if (currentPage < totalPages) { %>
-        <a href="?type=<%= type %>&role=<%= role %>&page=<%= currentPage + 1 %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>">Next</a>
+        <a href="?role=<%= role || 'user' %>&page=<%= currentPage + 1 %>&sortBy=<%= sortBy %>&order=<%= order === 1 ? 'asc' : 'desc' %>">Next</a>
       <% } %>
     </div>
  <% } %>
@@ -122,32 +114,25 @@
 <script>
     let sortBy_q = "<%= sortBy || 'createdAt' %>"
     let order_q = "<%= order === 1 ? 'asc' : 'desc' %>"
-   function changeUserType() {
-    const userRole = "<%= role %>"; 
-    const selected = document.getElementById('usertype');
-    const type = selected.value;
-    window.location.href = `/users/list?type=${type}&role=${userRole}&page=1&sortBy=${sortBy_q}&order=${order_q}`;
-  }
   function changeUserRoll() {
-    const userType = "<%= type %>"; 
-    const selected = document.getElementById('userrole');
-    const role = selected.value;
-    window.location.href = `/users/list?type=${userType}&role=${role}&page=1&sortBy=${sortBy_q}&order=${order_q}`;
+    let selected = document.getElementById('role');
+    let role = selected.value;
+    window.location.href = `/users/list?role=${role}&page=1&sortBy=${sortBy_q}&order=${order_q}`;
   }
  
-  function handleActionButton(res) {
-    const confirmed = confirm('Are you sure?');
+  function handleActionButton(id) {
+    let confirmed = confirm('Are you sure?');
     if (!confirmed) return false;
-    const btn = document.getElementById(res);
+    let btn = document.getElementById(`action-${id}`);
     btn.innerText = 'Please wait...';
     btn.classList.add('btn-loading');
     return true; 
   }
 
-  function handleDeleteButton(val) {
-    const confirmed = confirm('Are you sure you want to delete this?');
+  function handleDeleteButton(id) {
+    let confirmed = confirm('Are you sure you want to delete this?');
     if (!confirmed) return false;
-    const btn = document.getElementById(val);
+    let btn = document.getElementById(`delete-${id}`);
     btn.innerText = 'Please wait...';
     btn.classList.add('btn-loading');
     return true; 

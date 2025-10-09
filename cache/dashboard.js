@@ -9,7 +9,7 @@ export const userDashboardCache = async (req, res, next) => {
   try {
     const cached = await redisClient.get(DASH_CACHE_KEY);
     if (cached) {
-      console.log(`✅ Serving from cache  => users/dashboard `);
+      console.log(`✅ Serving from cache  => ${DASH_CACHE_KEY} `);
       return res.send(cached);
     }
 
@@ -18,15 +18,15 @@ export const userDashboardCache = async (req, res, next) => {
       try {
         const stringBody = typeof body === 'string' ? body : JSON.stringify(body);
         await redisClient.setex(DASH_CACHE_KEY, CACHE_TTL, stringBody);
-        console.log(`📝 Response added in Cache   => users/dashboard`);
+        console.log(`📝 Response added in Cache   => ${DASH_CACHE_KEY} `);
       } catch (err) {
-        console.error(`Redis error => users/dashboard`, err);
+        console.error(`Redis error => ${DASH_CACHE_KEY} `, err);
       }
       originalSend(body);
     };
     next();
   } catch (err) {
-    console.error(`Redis error  => users/dashboard`, err);
+    console.error(`Redis error  => ${DASH_CACHE_KEY} `, err);
     next();
   }
 };
@@ -35,5 +35,5 @@ export const userDashboardCache = async (req, res, next) => {
 
 export const clearUserDashboardCache = async () => {
   await redisClient.del(DASH_CACHE_KEY);
-  console.log(`🗑️  Cleared cache  => users/dashboard`);
+  console.log(`🗑️  Cleared cache  => ${DASH_CACHE_KEY}`);
 };

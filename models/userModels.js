@@ -2,14 +2,24 @@ import mongoose from "mongoose";
 const tblSchema = new mongoose.Schema(
   {
       profilepicture: {
-        url: { type: String, default: null },        // e.g. "https://s3.amazonaws.com/....jpg" or "/uploads/users/abc.jpg"
-        filename: { type: String, default: null },   // optional: store original filename
-        contentType: { type: String, default: null } // e.g. "image/jpeg"
+        url: { type: String, default: null },  
+        filename: { type: String, default: null }, 
+        contentType: { type: String, default: null }  
       },
       fullname: { type: String, required: true, trim: true },
       mobile: { type: String, required: true, unique: true },
       email: { type: String, required: true, unique: true },
       password: { type: String, required: true, trim: true   },
+      gender: { type: String, enum: ['male', 'female', 'other'], default: 'other' },
+      dob: { type: Date, default: null },
+      address: {
+          house: { type: String, default: null, trim: true },
+          street: { type: String, default: null, trim: true },
+          city: { type: String, default: null, trim: true },
+          state: { type: String, default: null, trim: true },
+          country: { type: String, default: null, trim: true },
+          pincode: { type: String, default: null, trim: true }
+      },      
       role: { 
         type: String, 
         required: true, 
@@ -20,8 +30,10 @@ const tblSchema = new mongoose.Schema(
       otpExpiry: { type: Date, default:null },
 
       isDeleted: { type: Boolean, default: false },
+      isVerifiedEmail: { type: Boolean, default: false },
+      isVerifiedMobile: { type: Boolean, default: false },
 
-      createdAt: { type: Date, required: true, required: true, default:new Date() },
+      createdAt: { type: Date, default: () => new Date() },
       updatedAt: { type: Date, default: null },
       deletedAt: { type: Date, default: null },
       

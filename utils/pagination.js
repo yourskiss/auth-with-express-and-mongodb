@@ -1,12 +1,18 @@
+// utils/pagination.js
 export const getPagination = (req) => {
-  const type = req.query.type || 'all';
-  const role = req.query.role || 'user';
-  const page = parseInt(req.query.page) || 1;
-  const sortBy = req.query.sortBy || 'createdAt';
-  const order = req.query.order === 'desc' ? -1 : 1;
+  let allowedSortFields = ['createdAt', 'fullname'];
+  let allowedOrder = ['asc', 'desc'];
 
-  const limit = parseInt(process.env.RECORD_LIMIT) || 10;
-  const skip = (page - 1) * limit;
+  let role = req.query.role || 'user';
+  let page = parseInt(req.query.page) || 1;
+  let sortByRaw = req.query.sortBy || 'createdAt';
+  let sortBy = allowedSortFields.includes(sortByRaw) ? sortByRaw : 'createdAt';
 
-  return { type, role, page, sortBy, order, limit, skip, sort: { [sortBy]: order } };
+  let orderRaw = req.query.order || 'asc';
+  let order = allowedOrder.includes(orderRaw) ? (orderRaw === 'desc' ? -1 : 1) : 1;
+
+  let limit = parseInt(process.env.RECORD_LIMIT) || 10;
+  let skip = (page - 1) * limit;
+
+  return { role, page, sortBy, order, limit, skip, sort: { [sortBy]: order } };
 };

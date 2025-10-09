@@ -10,7 +10,7 @@ export const userDetailCache = async (req, res, next) => {
   try {
     const cached = await redisClient.get(DETAIL_CACHE_KEY);
     if (cached) {
-      console.log(`✅ Serving from cache  => /users/detail/${id} `);
+      console.log(`✅ Serving from cache  => ${DETAIL_CACHE_KEY} `);
       return res.send(cached);
     }
 
@@ -19,15 +19,15 @@ export const userDetailCache = async (req, res, next) => {
       try {
         const stringBody = typeof body === 'string' ? body : JSON.stringify(body);
         await redisClient.setex(DETAIL_CACHE_KEY, CACHE_TTL, stringBody);
-        console.log(`📝 Response added in Cache   => /users/detail/${id}`);
+        console.log(`📝 Response added in Cache   => ${DETAIL_CACHE_KEY}`);
       } catch (err) {
-        console.error(`Redis error => users:detail:${id}`, err);
+        console.error(`Redis error => ${DETAIL_CACHE_KEY}`, err);
       }
       originalSend(body);
     };
     next();
   } catch (err) {
-    console.error(`Redis error  => users:detail:${id}`, err);
+    console.error(`Redis error  => ${DETAIL_CACHE_KEY}`, err);
     next();
   }
 };

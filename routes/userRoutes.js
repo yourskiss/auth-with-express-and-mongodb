@@ -78,7 +78,8 @@ router.get('/logout', isAuthenticated, checkRole(['user', 'admin', 'superadmin']
 router.get('/password-change', isAuthenticated, checkRole(['user', 'admin', 'superadmin']), renderChangePassword);
 router.post('/password-change', isAuthenticated, checkRole(['user', 'admin', 'superadmin']), handleChangePassword);
 
-router.get('/dashboard', userDashboardCache, isAuthenticated, checkRole(['user', 'admin', 'superadmin']), renderDashboard);
+// router.get('/dashboard', userDashboardCache, isAuthenticated, checkRole(['user', 'admin', 'superadmin']), renderDashboard);
+router.get('/dashboard', isAuthenticated, checkRole(['user', 'admin', 'superadmin']), renderDashboard);
 
 
 const userRoutes = router;
