@@ -13,7 +13,7 @@
 
 <section class="logscontrol">
   <div style="display: flex; justify-content: flex-start; column-gap: 20px;">
-    <form  id="logFormByDate" method="get" action="/report-logs">
+    <form  id="logFormByDate" method="get" action="/logs/report">
       <label for="dateSelect">By Date:</label>
       <select id="dateSelect" name="date" onchange="document.getElementById('logFormByDate').submit()">
         <% availableDates?.forEach(d => { %>
@@ -21,7 +21,7 @@
         <% }); %>
       </select>
     </form>
-    <form id="logFormByLavel" method="GET" action="/report-logs">
+    <form id="logFormByLavel" method="GET" action="/logs/report">
       <input type="hidden" name="date" value="<%= date %>" />
       <label for="level">By Level:</label>
       <select name="level" id="level" onchange="document.getElementById('logFormByLavel').submit()">
@@ -35,7 +35,7 @@
 
   <% if (logs.length !== 0) { %>
   <p>
-    <a href="/download-logs?date=<%= date %>">Download Report </a>
+    <a href="/logs/download?date=<%= date %>">Download Report </a>
   </p>
   <% }   %>
 </section>

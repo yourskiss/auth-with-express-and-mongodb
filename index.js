@@ -12,7 +12,7 @@ import corsMiddleware from "./middlewares/corsMiddleware.js"; // cors
 import helmetMiddleware from './middlewares/helmetMiddleware.js'; // helment
 import compressionMiddleware from "./middlewares/compressionMiddleware.js"; // request response compresor 
 import winstonMiddleware from "./middlewares/winstonMiddleware.js";  // logger  
-import {reportLogs, downloadLogs} from  "./routes/logsRouters.js" // read logger
+import logRoutes from "./routes/logsRouters.js"; // logs
 
  
 // make directory accessible for public use
@@ -72,11 +72,11 @@ app.get('/', (req, res) => {
 });
 
 // user routers
-app.use("/users",userRoutes);
+app.use("/users", userRoutes);
 
-// log reports - router
-app.use('/report-logs', reportLogs);
-app.use('/download-logs', downloadLogs);
+// logs router
+app.use('/logs', logRoutes);
+
 
  
 //404 page
